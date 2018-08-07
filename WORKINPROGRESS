@@ -1,0 +1,4 @@
+- Improve collision effects and more specifically on the rotation.
+- Porting in C++
+- Avoid flickering due to collision and gravity interaction.
+- Shading
