@@ -1,8 +1,10 @@
 package com.example.yves_k1.mis;
 
+import android.opengl.GLES30;
+
 import java.util.ArrayList;
 
-import javax.microedition.khronos.opengles.GL10;
+import static android.opengl.GLES10.glLoadIdentity;
 
 /**
  * Created by Yves_K1 on 19/06/2018.
@@ -28,16 +30,16 @@ public class MISScene {
         lights.add(light);
     }
 
-    public void draw(GL10 gl) {
+    public void draw() {
         int i;
-        gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
-        gl.glLoadIdentity();
+        GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT | GLES30.GL_DEPTH_BUFFER_BIT);
+        glLoadIdentity();
         for(i=0;i<lights.size();i++) {
-            lights.get(i).move(gl);
+            lights.get(i).move();
         }
-        camera.move(gl);
+        camera.move();
         for(i=0;i<objects.size();i++) {
-            objects.get(i).draw(gl);
+            objects.get(i).draw();
         }
         MISCollision colission = new MISCollision(this);
         MISPicking picking = new MISPicking(this);

@@ -5,8 +5,6 @@ import android.view.MotionEvent;
 
 import java.io.IOException;
 
-import javax.microedition.khronos.opengles.GL10;
-
 /**
  * Created by yves on 05/08/18.
  */
@@ -18,9 +16,9 @@ public class MySpinningCubeScene extends MISScene {
     float[] cuberotationspeed = {70.0f, 30.0f, 10.0f};
     MISObject cube = new MISObject("cube");
 
-    MySpinningCubeScene(GL10 gl, AssetManager assetManager) throws IOException {
+    MySpinningCubeScene(AssetManager assetManager) throws IOException {
         cube.loadobj(assetManager, "cube.obj", 1.0f/2.0f);
-        cube.loadtexture(gl, assetManager, "cube.png");
+        cube.loadtexture(assetManager, "cube.png");
         cube.moveto(cubeposition);
         cube.rotspeed(cuberotationspeed);
         camera.moveto(cameraposition);

@@ -35,11 +35,11 @@ public class MyDemoScene  extends MISScene {
 
     MyDemoScene(GL10 gl, AssetManager assetManager) throws IOException {
         ground.loadobj(assetManager, "ground.obj", 20.0f);
-        ground.loadtexture(gl, assetManager, "ground.jpg");
+        ground.loadtexture(assetManager, "ground.jpg");
         ground.weight(1000000); // earth is very heavy ! never move.
         ground.moveto(groundposition);
         sphere.loadobj(assetManager, "sphere.obj", 1.0f / 40.0f);
-        sphere.loadtexture(gl, assetManager, "sphere.gif");
+        sphere.loadtexture(assetManager, "sphere.gif");
         sphere.moveto(sphereposition);
         sphere.posspeed(spherespeed);
         sphere.rotspeed(sphererotationspeed);
@@ -47,7 +47,7 @@ public class MyDemoScene  extends MISScene {
         sphere.posacceleration(gravity); // apply gravity else the object will float
         sphere.elasticity(sphereelasticity);
         cube.loadobj(assetManager, "cube.obj", 1.0f/2.0f);
-        cube.loadtexture(gl, assetManager, "cube.png");
+        cube.loadtexture(assetManager, "cube.png");
         cube.moveto(cubeposition);
         cube.posspeed(cubespeed);
         cube.posacceleration(gravity);

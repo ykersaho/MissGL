@@ -10,28 +10,16 @@ import java.nio.Buffer;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
-import javax.microedition.khronos.opengles.GL10;
-
 import static android.content.ContentValues.TAG;
+import static android.opengl.GLES10.GL_LIGHT0;
+import static android.opengl.GLES10.GL_LIGHT1;
 import static java.lang.Math.PI;
 import static java.lang.Math.asin;
 import static java.lang.Math.sqrt;
-import static javax.microedition.khronos.opengles.GL10.GL_LIGHT0;
-import static javax.microedition.khronos.opengles.GL10.GL_LIGHT1;
 
 /**
  * Created by Yves_K1 on 19/06/2018.
  */
-
-class touchhistory {
-    int action;
-    int nb;
-    float x1=0.0f;
-    float x2=0.0f;
-    float y1=0.0f;
-    float y2=0.0f;
-    float t=0.0f;
-}
 
 public class MyScene extends MISScene {
     float [] arrowrot= {0.0f, 90.0f, 0.0f};
@@ -71,9 +59,9 @@ public class MyScene extends MISScene {
     MISObject button2 = new MISObject("button2");
     MISObject ground = new MISObject("ground");
     float [] groundb = {0.0f, -1000000.0f, 0.0f};
-    float [] posbutton1= {-0.2f, -0.7f, -2.0f};
+    float [] posbutton1= {-0.4f, 0.9f, -2.0f};
     float [] rotbutton1= {0.0f, 0.0f, 0.0f};
-    float [] posbutton2= {0.2f, -0.7f, -2.0f};
+    float [] posbutton2= {0.4f, 0.9f, -2.0f};
     float [] rotbutton2= {0.0f, 0.0f, 0.0f};
     float [] posleftwall = {-4.0f, -1.5f, -5.0f};
     float [] rotleftwall = {0.0f, 0.0f, -90.0f};
@@ -92,7 +80,17 @@ public class MyScene extends MISScene {
     boolean translation;
     MISObject pickedsphere=sphere1;
 
-    MyScene(GL10 gl, AssetManager assetManager) throws IOException {
+    private class touchhistory {
+        int action;
+        int nb;
+        float x1=0.0f;
+        float x2=0.0f;
+        float y1=0.0f;
+        float y2=0.0f;
+        float t=0.0f;
+    }
+
+    MyScene(AssetManager assetManager) throws IOException {
         int i;
         for(i=0;i<th.length;i++){
             th[i] = new touchhistory();
@@ -100,54 +98,54 @@ public class MyScene extends MISScene {
 
         arrow.loadobj(assetManager, "face.obj", 1.0f/5.0f);
         arrow.moveto(apos);
-        arrow.loadtexture(gl, assetManager, "arrow.png" );
+        arrow.loadtexture(assetManager, "arrow.png" );
         arrow.rotateto(arot);
         arrow.weight(0);
         button1.loadobj(assetManager, "face.obj", 1.0f/5.0f);
         button1.moveto(posbutton1);
-        button1.loadtexture(gl, assetManager, "camera.png" );
+        button1.loadtexture(assetManager, "camera.png" );
         button1.rotspeed(rotbutton1);
         button1.weight(0);
         button2.loadobj(assetManager, "face.obj", 1.0f/5.0f);
-        button2.loadtexture(gl, assetManager, "ball.png" );
+        button2.loadtexture(assetManager, "ball.png" );
         button2.moveto(posbutton2);
         button2.rotspeed(rotbutton2);
         button2.weight(0);
         sphere1.loadobj(assetManager, "spheresmall.obj", 1.0f/30.0f);
-        sphere1.loadtexture(gl, assetManager, "boule.gif" );
+        sphere1.loadtexture(assetManager, "boule.gif" );
         sphere1.moveto(pos1);
         sphere1.rotateto(rot1);
         sphere1.posspeed(spos1);
         sphere1.rotspeed(srot1);
         sphere1.weight(500);
         sphere2.loadobj(assetManager, "spheresmall.obj" , 1.0f/30.0f);
-        sphere2.loadtexture(gl, assetManager, "boule1.jpg" );
+        sphere2.loadtexture(assetManager, "boule1.jpg" );
         sphere2.moveto(pos2);
         sphere2.rotateto(rot2);
         sphere2.posspeed(spos2);
         sphere2.rotspeed(srot2);
         sphere2.weight(700);
         sphere3.loadobj(assetManager, "spheresmall.obj" , 1.0f/90.0f);
-        sphere3.loadtexture(gl, assetManager, "cochonnet.jpg" );
+        sphere3.loadtexture(assetManager, "cochonnet.jpg" );
         sphere3.moveto(pos3);
         sphere3.weight(20);
         ground.setbarycenter(groundb);
         ground.loadobj(assetManager, "ground.obj", 20.0f);
-        ground.loadtexture(gl, assetManager, "ground1.jpg" );
+        ground.loadtexture(assetManager, "ground1.jpg" );
         ground.weight(1000000);
         ground.moveto(posground);
         leftwall.loadobj(assetManager, "bordure.obj", 20.0f);
-        leftwall.loadtexture(gl, assetManager, "wood.jpg" );
+        leftwall.loadtexture(assetManager, "wood.jpg" );
         leftwall.moveto(posleftwall);
         leftwall.rotateto(rotleftwall);
         leftwall.weight(1000000);
         rightwall.loadobj(assetManager, "bordure.obj", 20.0f);
-        rightwall.loadtexture(gl, assetManager, "wood.jpg" );
+        rightwall.loadtexture(assetManager, "wood.jpg" );
         rightwall.moveto(posrightwall);
         rightwall.rotateto(rotrightwall);
         rightwall.weight(1000000);
         frontwall.loadobj(assetManager, "bordure.obj", 20.0f);
-        frontwall.loadtexture(gl, assetManager, "wood.jpg" );
+        frontwall.loadtexture(assetManager, "wood.jpg" );
         frontwall.moveto(posfrontwall);
         frontwall.rotateto(rotfrontwall);
         frontwall.rotspeed(srotfrontwall);

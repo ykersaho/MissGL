@@ -3,7 +3,6 @@ package com.example.yves_k1.mis;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.opengl.GLES20;
 import android.opengl.GLU;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
@@ -17,14 +16,49 @@ import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
 
-import javax.microedition.khronos.opengles.GL10;
+import android.opengl.GLES10;
+import android.opengl.GLES11;
+import android.opengl.GLES20;
+import android.opengl.GLES30;
 
+import static android.opengl.GLES10.GL_BLEND;
+import static android.opengl.GLES10.GL_CW;
+import static android.opengl.GLES10.GL_FLOAT;
+import static android.opengl.GLES10.GL_LINEAR;
+import static android.opengl.GLES10.GL_NEAREST;
+import static android.opengl.GLES10.GL_NORMAL_ARRAY;
+import static android.opengl.GLES10.GL_ONE_MINUS_SRC_ALPHA;
+import static android.opengl.GLES10.GL_REPEAT;
+import static android.opengl.GLES10.GL_SRC_ALPHA;
+import static android.opengl.GLES10.GL_TEXTURE_2D;
+import static android.opengl.GLES10.GL_TEXTURE_COORD_ARRAY;
+import static android.opengl.GLES10.GL_TEXTURE_MAG_FILTER;
+import static android.opengl.GLES10.GL_TEXTURE_MIN_FILTER;
+import static android.opengl.GLES10.GL_TEXTURE_WRAP_S;
+import static android.opengl.GLES10.GL_TEXTURE_WRAP_T;
+import static android.opengl.GLES10.GL_TRIANGLES;
+import static android.opengl.GLES10.GL_VERTEX_ARRAY;
+import static android.opengl.GLES10.glBindTexture;
+import static android.opengl.GLES10.glBlendFunc;
+import static android.opengl.GLES10.glDisableClientState;
+import static android.opengl.GLES10.glDrawElements;
+import static android.opengl.GLES10.glEnable;
+import static android.opengl.GLES10.glEnableClientState;
+import static android.opengl.GLES10.glFrontFace;
+import static android.opengl.GLES10.glGenTextures;
+import static android.opengl.GLES10.glLoadIdentity;
+import static android.opengl.GLES10.glNormalPointer;
+import static android.opengl.GLES10.glPopMatrix;
+import static android.opengl.GLES10.glPushMatrix;
+import static android.opengl.GLES10.glRotatef;
+import static android.opengl.GLES10.glTexCoordPointer;
+import static android.opengl.GLES10.glTexParameterf;
+import static android.opengl.GLES10.glTranslatef;
+import static android.opengl.GLES10.glVertexPointer;
+import static android.opengl.GLES11.GL_MODELVIEW_MATRIX;
 import static android.opengl.GLES11.glGetFloatv;
-import static javax.microedition.khronos.opengles.GL10.GL_BLEND;
-import static javax.microedition.khronos.opengles.GL10.GL_MODELVIEW;
-import static javax.microedition.khronos.opengles.GL10.GL_ONE_MINUS_SRC_ALPHA;
-import static javax.microedition.khronos.opengles.GL10.GL_SRC_ALPHA;
-import static javax.microedition.khronos.opengles.GL11.GL_MODELVIEW_MATRIX;
+import static android.opengl.GLES20.GL_UNSIGNED_INT;
+
 
 /**
  * Created by Yves_K1 on 18/06/2018.
@@ -79,7 +113,7 @@ public class MISObject {
         define(obj.vertices, obj.normals, obj.textures, obj.indices);
     }
 
-    public void loadtexture(GL10 gl, AssetManager assetManager, String name) {
+    public void loadtexture(AssetManager assetManager, String name) {
         InputStream input = null;
         try {
             input = assetManager.open(name);
@@ -88,19 +122,19 @@ public class MISObject {
         }
         bitmap = BitmapFactory.decodeStream(input);
 
-        gl.glGenTextures(1, texturesid, 0);
-        gl.glBindTexture(GL10.GL_TEXTURE_2D, texturesid[0]);
-        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER,
-                GL10.GL_NEAREST);
-        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER,
-                GL10.GL_LINEAR);
-        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_S,
-                GL10.GL_REPEAT);
-        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_T,
-                GL10.GL_REPEAT);
-        GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);
-        gl.glEnable(GL_BLEND);
-        gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glGenTextures(1, texturesid, 0);
+        glBindTexture(GL_TEXTURE_2D, texturesid[0]);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                GL_NEAREST);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                GL_REPEAT);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+                GL_REPEAT);
+        GLUtils.texImage2D(GL_TEXTURE_2D, 0, bitmap, 0);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
     void define(float [] vertices, float [] normals, float [] textures, int [] indices){
@@ -274,41 +308,41 @@ public class MISObject {
         rotationspeed[2] += rotationacceleration[2] * dt / 1000000000.0f;
     }
 
-    public void draw(GL10 gl) {
+    public void draw() {
         updateposition();
-        gl.glPushMatrix();
+        glPushMatrix();
         if(m==0)
-            gl.glLoadIdentity();
-        gl.glEnable(GL10.GL_TEXTURE_2D);
-        gl.glBindTexture(GL10.GL_TEXTURE_2D, texturesid[0]);
-        gl.glTranslatef(position[0], position[1], position[2]);
-        gl.glRotatef(rotation[0], 1.0f, 0.0f, 0.0f);
-        gl.glRotatef(rotation[1], 0.0f, 1.0f, 0.0f);
-        gl.glRotatef(rotation[2], 0.0f, 0.0f, 1.0f);
+            glLoadIdentity();
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, texturesid[0]);
+        glTranslatef(position[0], position[1], position[2]);
+        glRotatef(rotation[0], 1.0f, 0.0f, 0.0f);
+        glRotatef(rotation[1], 0.0f, 1.0f, 0.0f);
+        glRotatef(rotation[2], 0.0f, 0.0f, 1.0f);
 
-        gl.glFrontFace(GLES20.GL_CW);
-
-
-        gl.glVertexPointer(3, GL10.GL_FLOAT, 0, vertexBuffer);
-        gl.glNormalPointer( GL10.GL_FLOAT, 0, normalBuffer);
-        gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, textureBuffer);
-
-        gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
-        gl.glEnableClientState(GL10.GL_NORMAL_ARRAY);
-        gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
-
-        gl.glDrawElements(GL10.GL_TRIANGLES, nbtriangle*3, GLES20.GL_UNSIGNED_INT, indexBuffer);
-
-        gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
-        gl.glDisableClientState(GL10.GL_NORMAL_ARRAY);
-        gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
+        glFrontFace(GL_CW);
 
 
-        gl.glLoadIdentity();
-        gl.glTranslatef(position[0], position[1], position[2]);
-        gl.glRotatef(rotation[0], 1.0f, 0.0f, 0.0f);
-        gl.glRotatef(rotation[1], 0.0f, 1.0f, 0.0f);
-        gl.glRotatef(rotation[2], 0.0f, 0.0f, 1.0f);
+        glVertexPointer(3, GL_FLOAT, 0, vertexBuffer);
+        glNormalPointer( GL_FLOAT, 0, normalBuffer);
+        glTexCoordPointer(2, GL_FLOAT, 0, textureBuffer);
+
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_NORMAL_ARRAY);
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+        glDrawElements(GL_TRIANGLES, nbtriangle*3, GL_UNSIGNED_INT, indexBuffer);
+
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        glDisableClientState(GL_NORMAL_ARRAY);
+        glDisableClientState(GL_VERTEX_ARRAY);
+
+
+        glLoadIdentity();
+        glTranslatef(position[0], position[1], position[2]);
+        glRotatef(rotation[0], 1.0f, 0.0f, 0.0f);
+        glRotatef(rotation[1], 0.0f, 1.0f, 0.0f);
+        glRotatef(rotation[2], 0.0f, 0.0f, 1.0f);
         float mat[] = new float[16];
         Matrix.setIdentityM(mat, 0);
         matrixBuffer.position(0);
@@ -322,6 +356,6 @@ public class MISObject {
             Matrix.multiplyMV(mvvertices, i*12+4, mat, 0, vertices, i*12+4);
             Matrix.multiplyMV(mvvertices, i*12+8, mat, 0, vertices, i*12+8);
         }
-        gl.glPopMatrix();
+        glPopMatrix();
     }
 }
