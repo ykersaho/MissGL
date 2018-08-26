@@ -79,9 +79,9 @@ public class MyPongScene extends MISScene {
         button2.moveto(posbutton2);
         button2.rotspeed(rotbutton2);
         button2.weight(0);
-        rack1.loadobj(assetManager, "face.obj", 2.0f);
-        rack1.loadtexture(assetManager, "ball.png" );
-        rack1.weight(1000000);
+        rack1.loadobj(assetManager, "face.obj", 1.0f);
+        rack1.loadtexture(assetManager, "rack.png" );
+        rack1.weight(50);
         sphere1.loadobj(assetManager, "spheresmall.obj", 1.0f/90.0f);
         sphere1.loadtexture(assetManager, "cochonnet.jpg" );
         sphere1.moveto(pos1);
@@ -138,21 +138,20 @@ public class MyPongScene extends MISScene {
 
         //rack1 pos
         if(sphere1.positionspeed[2] < 0.0) {
-            dir[0] = (sphere1.position[0] - rack1.position[0]) / 2.0f;
-            dir[1] = (sphere1.position[1] - rack1.position[1]) / 2.0f;
-            dir[2] = (sphere1.position[2] - rack1.position[2]) / 2.0f;
+            dir[0]=10.0f*(sphere1.position[0] - rack1.position[0]);
+            dir[1]=10.0f*(sphere1.position[1] - rack1.position[1]);
+            dir[2]=2.0f*(sphere1.position[2] - rack1.position[2]);
+            if((dir[2] < 0.5f) && (dir[2] > 0.0f))
+                dir[2] = 10;
         }
         else {
-            dir[0] = (pos0[0] - rack1.position[0]) / 2.0f;
-            dir[1] = (pos0[1] - rack1.position[1]) / 2.0f;
-            dir[2] = (pos0[2] - rack1.position[2]) / 2.0f;
+            dir[0] = (pos0[0] - rack1.position[0])*2;
+            dir[1] = (pos0[1] - rack1.position[1])*2;
+            dir[2] = (pos0[2] - rack1.position[2])*2;
         }
-        if(rack1.position[1] < 0.0) dir[1] = -dir[1];
-        if(rack1.position[1] > 2.0) dir[1] = -dir[1];
-        if(rack1.position[2] < -7.0) dir[2] = -dir[2];
-        if(rack1.position[2] > -5.0) dir[2] = -dir[2];
         rack1.posspeed(dir);
         rack1.rotateto(rot0);
+        if(rack1.position[1] < 0.0) rack1.position[1] = 0.0f;
 
         if(threadindex != thwriteindex) { // touch event in the queue
             switch (th[threadindex].action) {
