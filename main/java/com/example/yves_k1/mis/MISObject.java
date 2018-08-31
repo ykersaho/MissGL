@@ -3,9 +3,9 @@ package com.example.yves_k1.mis;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.opengl.GLU;
-import android.opengl.GLUtils;
 import android.opengl.Matrix;
+
+import com.example.yves_k1.mis.MISObjloader;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,55 +16,43 @@ import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
 
-import android.opengl.GLES10;
-import android.opengl.GLES11;
-import android.opengl.GLES20;
-import android.opengl.GLES30;
-
-import static android.opengl.GLES10.GL_BLEND;
-import static android.opengl.GLES10.GL_CW;
-import static android.opengl.GLES10.GL_FLOAT;
-import static android.opengl.GLES10.GL_LINEAR;
-import static android.opengl.GLES10.GL_NEAREST;
-import static android.opengl.GLES10.GL_NORMAL_ARRAY;
-import static android.opengl.GLES10.GL_ONE_MINUS_SRC_ALPHA;
-import static android.opengl.GLES10.GL_REPEAT;
-import static android.opengl.GLES10.GL_SRC_ALPHA;
-import static android.opengl.GLES10.GL_TEXTURE_2D;
-import static android.opengl.GLES10.GL_TEXTURE_COORD_ARRAY;
-import static android.opengl.GLES10.GL_TEXTURE_MAG_FILTER;
-import static android.opengl.GLES10.GL_TEXTURE_MIN_FILTER;
-import static android.opengl.GLES10.GL_TEXTURE_WRAP_S;
-import static android.opengl.GLES10.GL_TEXTURE_WRAP_T;
-import static android.opengl.GLES10.GL_TRIANGLES;
-import static android.opengl.GLES10.GL_VERTEX_ARRAY;
-import static android.opengl.GLES10.glBindTexture;
-import static android.opengl.GLES10.glBlendFunc;
-import static android.opengl.GLES10.glDisableClientState;
-import static android.opengl.GLES10.glDrawElements;
-import static android.opengl.GLES10.glEnable;
-import static android.opengl.GLES10.glEnableClientState;
-import static android.opengl.GLES10.glFrontFace;
-import static android.opengl.GLES10.glGenTextures;
-import static android.opengl.GLES10.glLoadIdentity;
-import static android.opengl.GLES10.glNormalPointer;
-import static android.opengl.GLES10.glPopMatrix;
-import static android.opengl.GLES10.glPushMatrix;
-import static android.opengl.GLES10.glRotatef;
-import static android.opengl.GLES10.glTexCoordPointer;
-import static android.opengl.GLES10.glTexParameterf;
-import static android.opengl.GLES10.glTranslatef;
-import static android.opengl.GLES10.glVertexPointer;
-import static android.opengl.GLES11.GL_MODELVIEW_MATRIX;
-import static android.opengl.GLES11.glGetFloatv;
-import static android.opengl.GLES20.GL_UNSIGNED_INT;
-
+import static android.opengl.GLES20.GL_BLEND;
+import static android.opengl.GLES20.GL_CW;
+import static android.opengl.GLES20.GL_FLOAT;
+import static android.opengl.GLES20.GL_LINEAR;
+import static android.opengl.GLES20.GL_NEAREST;
+import static android.opengl.GLES20.GL_ONE_MINUS_SRC_ALPHA;
+import static android.opengl.GLES20.GL_REPEAT;
+import static android.opengl.GLES20.GL_SRC_ALPHA;
+import static android.opengl.GLES20.GL_TEXTURE0;
+import static android.opengl.GLES20.GL_TEXTURE_2D;
+import static android.opengl.GLES20.GL_TEXTURE_MAG_FILTER;
+import static android.opengl.GLES20.GL_TEXTURE_MIN_FILTER;
+import static android.opengl.GLES20.GL_TEXTURE_WRAP_S;
+import static android.opengl.GLES20.GL_TEXTURE_WRAP_T;
+import static android.opengl.GLES20.GL_TRIANGLES;
+import static android.opengl.GLES20.glActiveTexture;
+import static android.opengl.GLES20.glBindTexture;
+import static android.opengl.GLES20.glBlendFunc;
+import static android.opengl.GLES20.glDisableVertexAttribArray;
+import static android.opengl.GLES20.glDrawArrays;
+import static android.opengl.GLES20.glEnable;
+import static android.opengl.GLES20.glEnableVertexAttribArray;
+import static android.opengl.GLES20.glGenTextures;
+import static android.opengl.GLES20.glTexParameterf;
+import static android.opengl.GLES20.glUniform1i;
+import static android.opengl.GLES20.glUniform4fv;
+import static android.opengl.GLES20.glUniformMatrix4fv;
+import static android.opengl.GLES20.glUseProgram;
+import static android.opengl.GLES20.glVertexAttribPointer;
+import static android.opengl.GLUtils.texImage2D;
 
 /**
  * Created by Yves_K1 on 18/06/2018.
  */
 
 public class MISObject {
+    float[] mModelMatrix = new float[16];
     String name;
     boolean collision=false;
     boolean picked=false;
@@ -89,7 +77,7 @@ public class MISObject {
     FloatBuffer vertexBuffer = null;
     FloatBuffer normalBuffer = null;
     FloatBuffer colorBuffer = null;
-    IntBuffer indexBuffer = null;
+    ShortBuffer indexBuffer = null;
     FloatBuffer textureBuffer = null;
     int[] texturesid = new int[1];
     Bitmap bitmap = null;
@@ -124,20 +112,16 @@ public class MISObject {
 
         glGenTextures(1, texturesid, 0);
         glBindTexture(GL_TEXTURE_2D, texturesid[0]);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                GL_NEAREST);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                GL_LINEAR);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-                GL_REPEAT);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-                GL_REPEAT);
-        GLUtils.texImage2D(GL_TEXTURE_2D, 0, bitmap, 0);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        texImage2D(GL_TEXTURE_2D, 0, bitmap, 0);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
-    void define(float [] vertices, float [] normals, float [] textures, int [] indices){
+    void define(float [] vertices, float [] normals, float [] textures, short[] indices){
 
         float mat[] = new float[16];
         Matrix.setIdentityM(mat, 0);
@@ -165,9 +149,9 @@ public class MISObject {
         textureBuffer.put(textures);
         textureBuffer.position(0);
 
-        byteBuf = ByteBuffer.allocateDirect(indices.length * 4);
+        byteBuf = ByteBuffer.allocateDirect(indices.length * 2);
         byteBuf.order(ByteOrder.nativeOrder());
-        indexBuffer = byteBuf.asIntBuffer();
+        indexBuffer = byteBuf.asShortBuffer();
         indexBuffer.put(indices);
         indexBuffer.position(0);
         nbtriangle = indices.length / 3;
@@ -308,54 +292,71 @@ public class MISObject {
         rotationspeed[2] += rotationacceleration[2] * dt / 1000000000.0f;
     }
 
-    public void draw() {
+    public void draw(MISShader shader, float[] viewMatrix, float[] projectionMatrix) {
+        float[] lightpos = {1.0f, 10.0f, 1.0f, 1.0f};
+        float[] color = {1.0f, 1.0f, 1.0f, 1.0f};
+        int vertexCount = nbtriangle * 3;
+        float[] pmatrix = new float[16];
+        float[] mvmatrix = new float[16];
+        float[] identity= new float[16];
         updateposition();
-        glPushMatrix();
-        if(m==0)
-            glLoadIdentity();
+
         glEnable(GL_TEXTURE_2D);
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texturesid[0]);
-        glTranslatef(position[0], position[1], position[2]);
-        glRotatef(rotation[0], 1.0f, 0.0f, 0.0f);
-        glRotatef(rotation[1], 0.0f, 1.0f, 0.0f);
-        glRotatef(rotation[2], 0.0f, 0.0f, 1.0f);
 
-        glFrontFace(GL_CW);
-
-
-        glVertexPointer(3, GL_FLOAT, 0, vertexBuffer);
-        glNormalPointer( GL_FLOAT, 0, normalBuffer);
-        glTexCoordPointer(2, GL_FLOAT, 0, textureBuffer);
-
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_NORMAL_ARRAY);
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-        glDrawElements(GL_TRIANGLES, nbtriangle*3, GL_UNSIGNED_INT, indexBuffer);
-
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-        glDisableClientState(GL_NORMAL_ARRAY);
-        glDisableClientState(GL_VERTEX_ARRAY);
-
-
-        glLoadIdentity();
-        glTranslatef(position[0], position[1], position[2]);
-        glRotatef(rotation[0], 1.0f, 0.0f, 0.0f);
-        glRotatef(rotation[1], 0.0f, 1.0f, 0.0f);
-        glRotatef(rotation[2], 0.0f, 0.0f, 1.0f);
-        float mat[] = new float[16];
-        Matrix.setIdentityM(mat, 0);
-        matrixBuffer.position(0);
-        glGetFloatv(GL_MODELVIEW_MATRIX, matrixBuffer);
-        matrixBuffer.get(mat);
-        Matrix.multiplyMV(mvbarycenter, 0, mat, 0, barycenter, 0);
-        for (int i=0;i<nbtriangle;i++){
-            Matrix.multiplyMV(mvcenters, i*4, mat, 0, centers, i*4);
-            Matrix.multiplyMV(mvnormals, i*4, mat, 0, normals, i*4);
-            Matrix.multiplyMV(mvvertices, i*12, mat, 0, vertices, i*12);
-            Matrix.multiplyMV(mvvertices, i*12+4, mat, 0, vertices, i*12+4);
-            Matrix.multiplyMV(mvvertices, i*12+8, mat, 0, vertices, i*12+8);
+        Matrix.setIdentityM(mModelMatrix, 0);
+        Matrix.setIdentityM(identity, 0);
+        Matrix.translateM(mModelMatrix, 0, position[0], position[1], position[2]);
+        Matrix.rotateM(mModelMatrix, 0, rotation[0], 1.0f, 0.0f, 0.0f);
+        Matrix.rotateM(mModelMatrix, 0, rotation[1], 0.0f, 1.0f, 0.0f);
+        Matrix.rotateM(mModelMatrix, 0, rotation[2], 0.0f, 0.0f, 1.0f);
+        if(m != 0) {
+            Matrix.multiplyMM(mvmatrix, 0, viewMatrix, 0, mModelMatrix, 0);
         }
-        glPopMatrix();
+        else {
+            Matrix.multiplyMM(mvmatrix, 0, identity, 0, mModelMatrix, 0);
+        }
+
+        Matrix.multiplyMM(pmatrix, 0, projectionMatrix, 0, mvmatrix, 0);
+        // Add program to OpenGL ES environment
+        glUseProgram(shader.mProgram);
+
+        // Enable a handle to the triangle vertices
+        glEnableVertexAttribArray(shader.mPositionHandle);
+        glEnableVertexAttribArray(shader.mNormalHandle);
+        glEnableVertexAttribArray(shader.mTexCoordnateHandle);
+
+        // Prepare the triangle coordinate data
+        glVertexAttribPointer(shader.mPositionHandle, 3, GL_FLOAT, false,12, vertexBuffer);
+        glVertexAttribPointer(shader.mNormalHandle, 3, GL_FLOAT, false,12, normalBuffer);
+        glVertexAttribPointer(shader.mTexCoordnateHandle, 2, GL_FLOAT, false,8, textureBuffer);
+
+        // Pass the projection and view transformation to the shader
+        glUniformMatrix4fv(shader.mMVPMatrixHandle, 1, false, pmatrix, 0);
+        glUniformMatrix4fv(shader.mMVMatrixHandle, 1, false, mvmatrix, 0);
+
+        // Tell the texture uniform sampler to use this texture in the shader by binding to texture unit 0.
+        glUniform1i(shader.mTextureHandle, 0);
+
+        glUniform4fv(shader.mLightPosHandle, 1, lightpos, 0);
+        glUniform4fv(shader.mColorHandle, 1, color, 0);
+
+        // Draw the triangle
+        glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+
+        // Disable vertex array
+        glDisableVertexAttribArray(shader.mPositionHandle);
+        glDisableVertexAttribArray(shader.mNormalHandle);
+        glDisableVertexAttribArray(shader.mTexCoordnateHandle);
+
+        Matrix.multiplyMV(mvbarycenter, 0, mvmatrix, 0, barycenter, 0);
+        for (int i=0;i<nbtriangle;i++){
+            Matrix.multiplyMV(mvcenters, i*4, mvmatrix, 0, centers, i*4);
+            Matrix.multiplyMV(mvnormals, i*4, mvmatrix, 0, normals, i*4);
+            Matrix.multiplyMV(mvvertices, i*12, mvmatrix, 0, vertices, i*12);
+            Matrix.multiplyMV(mvvertices, i*12+4, mvmatrix, 0, vertices, i*12+4);
+            Matrix.multiplyMV(mvvertices, i*12+8, mvmatrix, 0, vertices, i*12+8);
+        }
     }
 }

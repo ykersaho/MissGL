@@ -188,6 +188,44 @@ public class MISCollision {
         }
         return(false);
     }
+    void impact(MISObject o1, float [] n1, MISObject o2, float [] n2) {
+        float [] G = new float[3];
+        float [] V = new float[3];
+        float [] N = new float[3];
+        float [] R = new float[3];
+        float [] VP = new float[3];
+        float l;
+        G[0] = o1.mvbarycenter[0] - cc[0];
+        G[1] = o1.mvbarycenter[1] - cc[1];
+        G[2] = o1.mvbarycenter[2] - cc[2];
+        l=(float) Math.sqrt(G[0]*G[0]+G[1]*G[1]+G[2]*G[2]);
+        G[0] = G[0]/l;
+        G[1] = G[1]/l;
+        G[2] = G[2]/l;
+        l=(float) Math.sqrt(n2[0]*n2[0]+n2[1]*n2[1]+n2[2]*n2[2]);
+        N[0] = n2[0]/l;
+        N[1] = n2[1]/l;
+        N[2] = n2[2]/l;
+        System.arraycopy(o1.rotationspeed,0, R, 0, R.length);
+        System.arraycopy(o1.positionspeed,0, V, 0, V.length);
+        VP[0] = G[1]*V[2]-G[2]*V[1];
+        VP[1] = G[2]*V[0]-G[0]*V[2];
+        VP[2] = G[0]*V[1]-G[1]*V[0];
+        float s = V[0]*N[0]+V[1]*N[1]+V[2]*N[2];
+        float e = 2 * o2.m / (o1.m + o2.m);
+        if(o1.m < 1000000) {
+            if(s < 0.0) {
+                V[0] = (V[0] - e * s * N[0] * o1.elasticity) * 0.95f;
+                V[1] = (V[1] - e * s * N[1] * o1.elasticity) * 0.95f;
+                V[2] = (V[2] - e * s * N[2] * o1.elasticity) * 0.95f;
+                o1.posspeed(V);
+            }
+            R[0] = 360*VP[0] * 0.95f;
+            R[1] = 360*VP[1] * 0.95f;
+            R[2] = 360*VP[2] * 0.95f;
+            o1.rotspeed(R);
+        }
+    }
 
     void collision(MISObject o1, MISObject o2) {
         float zero[] = {0.0f,0.0f,0.0f};
@@ -246,128 +284,10 @@ public class MISCollision {
 
         o1.setcollisionstate(true);
         o2.setcollisionstate(true);
-
-        float [] rs1 = new float[3];
-        float [] ps1 = new float[3];
-        float [] rs2 = new float[3];
-        float [] ps2 = new float[3];
-        float [] ra1 = new float[3];
-        float [] pa1 = new float[3];
-        float [] ra2 = new float[3];
-        float [] pa2 = new float[3];
-        float [] normal1 = new float[3];
-        float [] normal2 = new float[3];
-        float [] pivot1 = new float[3];
-        float [] pivot2 = new float[3];
-        float [] vector1 = new float[3];
-        float [] vector2 = new float[3];
-        float [] dv = new float[3];
-        float scalar1;
-        float scalar2;
-        float rscalar1;
-        float rscalar2;
-        float strength1;
-        float strength2;
-        float length;
-        float energy11;
-        float energy21;
-        float energy12;
-        float energy22;
-
-        System.arraycopy(o1.rotationspeed,0, rs1, 0, rs1.length);
-        System.arraycopy(o1.positionspeed,0, ps1, 0, ps1.length);
-        System.arraycopy(o2.rotationspeed,0, rs2, 0, rs2.length);
-        System.arraycopy(o2.positionspeed,0, ps2, 0, ps2.length);
-        System.arraycopy(o1.rotationacceleration,0, ra1, 0, ra1.length);
-        System.arraycopy(o1.positionacceleration,0, pa1, 0, pa1.length);
-        System.arraycopy(o2.rotationacceleration,0, ra2, 0, ra2.length);
-        System.arraycopy(o2.positionacceleration,0, pa2, 0, pa2.length);
-        normal1[0] = cn1[0];
-        normal1[1] = cn1[1];
-        normal1[2] = cn1[2];
-        normal2[0] = cn2[0];
-        normal2[1] = cn2[1];
-        normal2[2] = cn2[2];
-        length = (float) Math.sqrt(normal1[0]*normal1[0] + normal1[1]*normal1[1] + normal1[2]*normal1[2]);
-        normal1[0] = normal1[0] / length;
-        normal1[1] = normal1[1] / length;
-        normal1[2] = normal1[2] / length;
-        length = (float) Math.sqrt(normal2[0]*normal2[0] + normal2[1]*normal2[1] + normal2[2]*normal2[2]);
-        normal2[0] = normal2[0] / length;
-        normal2[1] = normal2[1] / length;
-        normal2[2] = normal2[2] / length;
-        pivot1[0] = o1.mvbarycenter[0] - cc[0];
-        pivot1[1] = o1.mvbarycenter[1] - cc[1];
-        pivot1[2] = o1.mvbarycenter[2] - cc[2];
-        pivot2[0] = o2.mvbarycenter[0] - cc[0];
-        pivot2[1] = o2.mvbarycenter[1] - cc[1];
-        pivot2[2] = o2.mvbarycenter[2] - cc[2];
-        length = (float) Math.sqrt(pivot1[0]*pivot1[0] + pivot1[1]*pivot1[1] + pivot1[2]*pivot1[2]);
-        pivot1[0] = pivot1[0] / length;
-        pivot1[1] = pivot1[1] / length;
-        pivot1[2] = pivot1[2] / length;
-        length = (float) Math.sqrt(pivot2[0]*pivot2[0] + pivot2[1]*pivot2[1] + pivot2[2]*pivot2[2]);
-        pivot2[0] = pivot2[0] / length;
-        pivot2[1] = pivot2[1] / length;
-        pivot2[2] = pivot2[2] / length;
-        vector1[0] = normal2[1]*pivot1[2]-normal2[2]*pivot1[1];
-        vector1[1] = normal2[2]*pivot1[0]-normal2[0]*pivot1[2];
-        vector1[2] = normal2[0]*pivot1[1]-normal2[1]*pivot1[0];
-        vector2[0] = normal1[1]*pivot2[2]-normal1[2]*pivot2[1];
-        vector2[1] = normal1[2]*pivot2[0]-normal1[0]*pivot2[2];
-        vector2[2] = normal1[0]*pivot2[1]-normal1[1]*pivot2[0];
-        rscalar1 = ps1[0]*pivot1[0] + ps1[1]*pivot1[1] + ps1[2]*pivot1[2];
-        rscalar2 = ps2[0]*pivot2[0] + ps2[1]*pivot2[1] + ps2[2]*pivot2[2];
-        strength1= (float)Math.sqrt(ps1[0]*ps1[0]+ps1[1]*ps1[1]+ps1[2]*ps1[2]);
-        strength2= (float)Math.sqrt(ps2[0]*ps2[0]+ps2[1]*ps2[1]+ps2[2]*ps2[2]);
-        energy21 = Math.abs((o1.m-o2.m) / (o1.m + o2.m));
-        energy11 = Math.abs(2*o2.m / (o1.m + o2.m));
-        energy12 = Math.abs((o2.m-o1.m)  / (o1.m + o2.m));
-        energy22 = Math.abs(2*o1.m / (o1.m + o2.m));
-        scalar1 = ps1[0]*normal2[0] + ps1[1]*normal2[1] + ps1[2]*normal2[2];
-        scalar2 = ps2[0]*normal1[0] + ps2[1]*normal1[1] + ps2[2]*normal1[2];
-
-        if(o1.m < 1000000) {
-            rs1[0] =  60*strength1*vector1[0];
-            rs1[1] =  60*strength1*vector1[1];
-            rs1[2] =  60*strength1*vector1[2];
-            o1.rotspeed(rs1);
-            if(scalar1 < 0.0f) {
-                ps1[0] = (ps1[0] - scalar1 * normal2[0] * energy11 * o1.elasticity);
-                ps1[1] = (ps1[1] - scalar1 * normal2[1] * energy11 * o1.elasticity);
-                ps1[2] = (ps1[2] - scalar1 * normal2[2] * energy11 * o1.elasticity);
-                ps1[0] *= 0.95;
-                ps1[1] *= 0.95;
-                ps1[2] *= 0.95;
-            }
-            if(scalar2 < 0.0f) {
-                ps1[0] += energy11 * normal1[0] * scalar2;
-                ps1[1] += energy11 * normal1[1] * scalar2;
-                ps1[2] += energy11 * normal1[2] * scalar2;
-            }
-            o1.posspeed(ps1);
-        }
-        if(o2.m < 1000000) {
-            rs2[0] =  60*strength2*vector2[0];
-            rs2[1] =  60*strength2*vector2[1];
-            rs2[2] =  60*strength2*vector2[2];
-            o2.rotspeed(rs2);
-            if(scalar2 < 0.0f) {
-                ps2[0] = (ps2[0] - scalar2 * normal1[0] * energy22 * o2.elasticity);
-                ps2[1] = (ps2[1] - scalar2 * normal1[1] * energy22 * o2.elasticity);
-                ps2[2] = (ps2[2] - scalar2 * normal1[2] * energy22 * o2.elasticity);
-                ps2[0] *= 0.95;
-                ps2[1] *= 0.95;
-                ps2[2] *= 0.95;
-            }
-            if(scalar1 < 0.0f) {
-                ps2[0] += energy22 * normal2[0] * scalar1;
-                ps2[1] += energy22 * normal2[1] * scalar1;
-                ps2[2] += energy22 * normal2[2] * scalar1;
-            }
-            o2.posspeed(ps2);
-        }
+        impact(o1, cn1, o2, cn2);
+        impact(o2, cn2, o1, cn1);
     }
+
     MISCollision(MISScene s) {
         int i,j;
         for(i=0;i<s.objects.size()-1;i++){

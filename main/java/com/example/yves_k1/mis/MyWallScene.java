@@ -23,15 +23,15 @@ public class MyWallScene extends MISScene {
     MISObject ground = new MISObject("ground");
     MISObject wall = new MISObject("wall");
     float [] gravity= {0.0f, -9.0f, 0.0f};
-    float [] campos = {0.0f, 1.5f, 8.0f};
-    float [] ballpos = {0.0f, 0.5f, -1.0f};
-    float [] buttonpos= {-0.4f, 0.9f, -2.0f};
+    float [] campos = {0.0f, 1.0f, 5.5f};
+    float [] ballpos = {0.0f, 0.5f, 2.0f};
+    float [] buttonpos= {-0.4f, 0.9f, -1.5f};
     float [] wallpos= {0.0f, 2.5f, -5.0f};
     float [] groundpos= {0.0f, 0.0f, 0.0f};
     MISLight light1 = new MISLight(GL_LIGHT0);
     MISLight light2 = new MISLight(GL_LIGHT1);
-    float [] light1pos = {2.0f, 10.0f, -1.0f};
-    float [] light2pos = {-2.0f, 10.0f, -1.0f};
+    float [] light1pos = {0.0f, 1.0f, -2.0f};
+    float [] light2pos = {1.0f, 10.0f, -1.0f};
 
     private class touchhistory {
         int action;
@@ -53,10 +53,10 @@ public class MyWallScene extends MISScene {
         button.moveto(buttonpos);
         button.loadtexture(assetManager, "button.png" );
         button.weight(0);
-        ball.loadobj(assetManager, "ball.obj", 1.0f/90.0f);
+        ball.loadobj(assetManager, "spheresmall.obj", 1.0f/50.0f);
         ball.loadtexture(assetManager, "ball.jpg" );
         ball.moveto(ballpos);
-        ball.elasticity(0.8f);
+        ball.elasticity(0.7f);
         ball.weight(20);
         ground.loadobj(assetManager, "ground.obj", 10.0f);
         ground.loadtexture(assetManager, "tennis.jpg" );

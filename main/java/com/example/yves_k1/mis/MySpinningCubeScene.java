@@ -10,14 +10,13 @@ import java.io.IOException;
  */
 
 public class MySpinningCubeScene extends MISScene {
-    float[] cameraposition = {0.0f, 1.0f, 6.0f};   // camera postion in meter
-    float[] camerarotation = {0.0f, 0.0f, 0.0f};   // camera rotation in degrees
+    float[] cameraposition = {0.0f, 0.0f, 1.0f};   // camera postion in meter
     float[] cubeposition = {0.0f, 0.0f, -2.0f};
     float[] cuberotationspeed = {70.0f, 30.0f, 10.0f};
     MISObject cube = new MISObject("cube");
 
     MySpinningCubeScene(AssetManager assetManager) throws IOException {
-        cube.loadobj(assetManager, "cube.obj", 1.0f/2.0f);
+        cube.loadobj(assetManager, "cube.obj", 1.0f/1.0f);
         cube.loadtexture(assetManager, "cube.png");
         cube.moveto(cubeposition);
         cube.rotspeed(cuberotationspeed);

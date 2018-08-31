@@ -22,7 +22,7 @@ public class MISObjloader {
     float[] normals;
     float[] textures;
     float[] barycenter = {0.0f, 0.0f, 0.0f};
-    int[] indices;
+    short[] indices;
 
     MISObjloader(InputStream input, float scale) throws IOException {
         int i=0;
@@ -58,7 +58,7 @@ public class MISObjloader {
         vertices = new float[fv.size()*3];
         normals  = new float[fv.size()*3];
         textures = new float[fv.size()*2];
-        indices  = new int[fv.size()];
+        indices  = new short[fv.size()];
         for(i=0;i<fv.size();i++) {
             vertices[3*i] = v.get(3*fv.get(i))*scale;
             vertices[3*i+1] = v.get(3*fv.get(i)+1)*scale;
@@ -68,7 +68,7 @@ public class MISObjloader {
             normals[3*i+2]  = vn.get(3*fvn.get(i)+2);
             textures[2*i] = vt.get(2*fvt.get(i));
             textures[2*i+1] = vt.get(2*fvt.get(i)+1);
-            indices[i] = (int) i;
+            indices[i] = (short) i;
             barycenter[0] += vertices[3*i];
             barycenter[1] += vertices[3*i+1];
             barycenter[2] += vertices[3*i+2];

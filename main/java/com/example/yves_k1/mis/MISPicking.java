@@ -7,14 +7,9 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import static android.opengl.GLES11.glGetFloatv;
+import static android.opengl.GLES20.GL_VIEWPORT;
 import static android.opengl.GLES20.glGetIntegerv;
-import static android.opengl.GLES20.glReadPixels;
 import static android.opengl.GLU.gluUnProject;
-import static javax.microedition.khronos.opengles.GL11.GL_MODELVIEW_MATRIX;
-import static javax.microedition.khronos.opengles.GL11.GL_PROJECTION_MATRIX;
-import static javax.microedition.khronos.opengles.GL11.GL_VIEWPORT;
-import static javax.microedition.khronos.opengles.GL11ExtensionPack.GL_DEPTH_COMPONENT;
 
 /**
  * Created by yves on 29/07/18.
@@ -55,33 +50,20 @@ public class MISPicking {
 
     MISPicking(MISScene s) {
         int i;
-        FloatBuffer matrixBuffer = null;
         IntBuffer viewBuffer = null;
-        float [] zero = {0.0f, 0.0f,0.0f, 0.0f};
-        float matview[] = new float[16];
-        float matproj[] = new float[16];
         int viewport[] = new int[4];
         float [] p1 = new float[4];
         float [] p2 = new float[4];
         float identity[] = new float[16];
         Matrix.setIdentityM(identity, 0);
-        ByteBuffer byteBuf = ByteBuffer.allocateDirect(16 * 4);
-        byteBuf.order(ByteOrder.nativeOrder());
-        matrixBuffer = byteBuf.asFloatBuffer();
-        matrixBuffer.position(0);
-        glGetFloatv(GL_MODELVIEW_MATRIX, matrixBuffer);
-        matrixBuffer.get(matview);
-        matrixBuffer.position(0);
-        glGetFloatv(GL_PROJECTION_MATRIX, matrixBuffer);
-        matrixBuffer.get(matproj);
         ByteBuffer byteBufViewPort = ByteBuffer.allocateDirect(4 * 4);
-        byteBuf.order(ByteOrder.nativeOrder());
-        viewBuffer = byteBuf.asIntBuffer();
+        byteBufViewPort.order(ByteOrder.nativeOrder());
+        viewBuffer = byteBufViewPort.asIntBuffer();
         viewBuffer.position(0);
         glGetIntegerv(GL_VIEWPORT, viewBuffer);
         viewBuffer.get(viewport);
-        gluUnProject(s.pickpointer[0], viewport[3]-s.pickpointer[1], 0.0f, identity, 0, matproj, 0, viewport, 0, p1, 0);
-        gluUnProject(s.pickpointer[0], viewport[3]-s.pickpointer[1], 1.0f, identity, 0, matproj, 0, viewport, 0, p2, 0);
+        gluUnProject(s.pickpointer[0], viewport[3]-s.pickpointer[1], 0.0f, identity, 0, s.mProjectionMatrix, 0, viewport, 0, p1, 0);
+        gluUnProject(s.pickpointer[0], viewport[3]-s.pickpointer[1], 1.0f, identity, 0, s.mProjectionMatrix, 0, viewport, 0, p2, 0);
         p1[0] /= p1[3];
         p1[1] /= p1[3];
         p1[2] /= p1[3];
@@ -92,8 +74,8 @@ public class MISPicking {
                 if(s.objects.get(i).m==0)
                     intersect(p1, p2, s.objects.get(i));
         }
-        gluUnProject(s.pickpointer[0], viewport[3]-s.pickpointer[1], 0.0f, matview, 0, matproj, 0, viewport, 0, p1, 0);
-        gluUnProject(s.pickpointer[0], viewport[3]-s.pickpointer[1], 1.0f, matview, 0, matproj, 0, viewport, 0, p2, 0);
+        gluUnProject(s.pickpointer[0], viewport[3]-s.pickpointer[1], 0.0f, s.camera.mModelMatrix, 0, s.mProjectionMatrix, 0, viewport, 0, p1, 0);
+        gluUnProject(s.pickpointer[0], viewport[3]-s.pickpointer[1], 1.0f, s.camera.mModelMatrix, 0, s.mProjectionMatrix, 0, viewport, 0, p2, 0);
         p1[0] /= p1[3];
         p1[1] /= p1[3];
         p1[2] /= p1[3];
