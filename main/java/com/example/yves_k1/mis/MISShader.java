@@ -78,8 +78,8 @@ public class MISShader {
                     "diffuse = diffuse * (1.0 / (1.0 + (0.10 * distance)));"+     // Add attenuation.
                     "diffuse = diffuse + 0.5;"+                                   // Add ambient lighting
                     "gl_FragColor = (diffuse * texture2D(u_Texture, v_TexCoordinate));"+ // Multiply the color by the diffuse illumination level and texture value to get final output color.
-                    //"gl_FragColor = texture2D(u_Texture, v_TexCoordinate);"+ // Multiply the color by the diffuse illumination level and texture value to get final output color.
-                    "}";
+                    "gl_FragColor.a = 1.0;"+
+                "}";
 
     int vertexShader;
     int fragmentShader;

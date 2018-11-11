@@ -7,15 +7,17 @@ import android.opengl.Matrix;
  */
 
 public class MISCamera extends MISObject {
+        float[] mViewMatrix = new float[16];
+
         public MISCamera(){
             super("camera");
         }
         public void move() {
             updateposition();
-            Matrix.setIdentityM(mModelMatrix, 0);
-            Matrix.rotateM(mModelMatrix, 0, -rotation[0], 1.0f, 0.0f, 0.0f);
-            Matrix.rotateM(mModelMatrix, 0, -rotation[1], 0.0f, 1.0f, 0.0f);
-            Matrix.rotateM(mModelMatrix, 0, -rotation[2], 0.0f, 0.0f, 1.0f);
-            Matrix.translateM(mModelMatrix, 0, -position[0], -position[1], -position[2]);
+            Matrix.invertM(mViewMatrix, 0, mModelMatrix, 0);
+            Matrix.multiplyMV(mvbarycenter, 0, mModelMatrix, 0, barycenter, 0);
+            position[0] = mvbarycenter[0];
+            position[1] = mvbarycenter[1];
+            position[2] = mvbarycenter[2];
         }
 }

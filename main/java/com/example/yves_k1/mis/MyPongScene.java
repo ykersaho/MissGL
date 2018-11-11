@@ -13,10 +13,7 @@ import static android.opengl.GLES10.GL_LIGHT1;
  */
 
 public class MyPongScene extends MISScene {
-    touchhistory [] th = new touchhistory[20];
-    touchhistory thi = new touchhistory();
-    int thwriteindex = 0;
-    int threadindex = 0;
+    MISScene.touchhistory thi = new MISScene.touchhistory();
     int state = 0;
     float [] currentpos= {0.0f, -9.0f, 0.0f};
     float [] currentrot= {0.0f, -9.0f, 0.0f};
@@ -46,10 +43,8 @@ public class MyPongScene extends MISScene {
     float [] posnet= {0.0f, 0.0f, -2.0f};
     float [] rotnet= {0.0f, 0.0f, 0.0f};
     float [] srotnet = {0.0f, 0.0f, 0.0f};
-    MISLight light1 = new MISLight(GL_LIGHT0);
-    MISLight light2 = new MISLight(GL_LIGHT1);
-    float [] light1pos = {2.0f, 10.0f, -1.0f};
-    float [] light2pos = {-2.0f, 10.0f, -1.0f};
+    MISLight light1 = new MISLight(GL_LIGHT0,2.0f, 10.0f, -1.0f);
+    MISLight light2 = new MISLight(GL_LIGHT1,-2.0f, 10.0f, -1.0f);
     boolean translation;
     MISObject pickedsphere=sphere1;
 
@@ -64,20 +59,15 @@ public class MyPongScene extends MISScene {
     }
 
     MyPongScene(AssetManager assetManager) throws IOException {
-        int i;
-        for(i=0;i<th.length;i++){
-            th[i] = new touchhistory();
-        }
-
         button1.loadobj(assetManager, "face.obj", 1.0f/5.0f);
         button1.moveto(posbutton1);
         button1.loadtexture(assetManager, "camera.png" );
-        button1.rotspeed(rotbutton1);
+        //button1.rotspeed(rotbutton1);
         button1.weight(0);
         button2.loadobj(assetManager, "face.obj", 1.0f/5.0f);
         button2.loadtexture(assetManager, "ball.png" );
         button2.moveto(posbutton2);
-        button2.rotspeed(rotbutton2);
+        //button2.rotspeed(rotbutton2);
         button2.weight(0);
         rack1.loadobj(assetManager, "face.obj", 1.0f);
         rack1.loadtexture(assetManager, "rack.png" );
@@ -85,9 +75,9 @@ public class MyPongScene extends MISScene {
         sphere1.loadobj(assetManager, "spheresmall.obj", 1.0f/90.0f);
         sphere1.loadtexture(assetManager, "cochonnet.jpg" );
         sphere1.moveto(pos1);
-        sphere1.rotateto(rot1);
+        //sphere1.rotateto(rot1);
         sphere1.posspeed(spos1);
-        sphere1.rotspeed(srot1);
+        //sphere1.rotspeed(srot1);
         sphere1.weight(10);
         sphere1.elasticity(0.9f);
         table.setbarycenter(tabledb);
@@ -98,8 +88,8 @@ public class MyPongScene extends MISScene {
         net.loadobj(assetManager, "net.obj", 1.0f);
         net.loadtexture(assetManager, "wood.jpg" );
         net.moveto(posnet);
-        net.rotateto(rotnet);
-        net.rotspeed(srotnet);
+        //net.rotateto(rotnet);
+        //net.rotspeed(srotnet);
         net.weight(1000000);
         sphere1.posacceleration(gravity);
         addobject((MISObject)sphere1);
@@ -108,17 +98,16 @@ public class MyPongScene extends MISScene {
         addobject((MISObject)button1);
         addobject((MISObject)button2);
         addobject((MISObject)rack1);
-        light1.moveto(light1pos);
         addlight(light1);
-        light2.moveto(light2pos);
         addlight(light2);
         camera.moveto(campos);
-        camera.rotateto(camrot);
-        camera.rotspeed(camrotspeed);
+        //camera.rotateto(camrot);
+        //camera.rotspeed(camrotspeed);
         camera.posspeed(camposspeed);
     }
 
-    public void statemachine() {
+    public boolean statemachine() {
+        MISScene.touchhistory myth = new MISScene.touchhistory();
         float [] rot= {0.0f, 90.0f, 0.0f};
         float [] dir= {0.0f, 90.0f, 0.0f};
         float [] pos= {0.0f, 0.0f, 0.0f};
@@ -150,46 +139,46 @@ public class MyPongScene extends MISScene {
             dir[2] = (pos0[2] - rack1.position[2])*2;
         }
         rack1.posspeed(dir);
-        rack1.rotateto(rot0);
+        //rack1.rotateto(rot0);
         if(rack1.position[1] < 0.0) rack1.position[1] = 0.0f;
 
-        if(threadindex != thwriteindex) { // touch event in the queue
-            switch (th[threadindex].action) {
+        if(gettouchevent(myth)) { // touch event in the queue
+            switch (myth.action) {
                 case MotionEvent.ACTION_DOWN:
                 case MotionEvent.ACTION_POINTER_DOWN:
                 case MotionEvent.ACTION_POINTER_UP:
-                    pickpointer[0] = th[threadindex].x1;
-                    pickpointer[1] = th[threadindex].y1;
-                    thi.action=th[threadindex].action;
-                    thi.nb=th[threadindex].nb;
-                    thi.x1=th[threadindex].x1;
-                    thi.x2=th[threadindex].x2;
-                    thi.y1=th[threadindex].y1;
-                    thi.y2=th[threadindex].y2;
-                    thi.t=th[threadindex].t;
+                    pickpointer[0] = myth.x1;
+                    pickpointer[1] = myth.y1;
+                    thi.action=myth.action;
+                    thi.nb=myth.nb;
+                    thi.x1=myth.x1;
+                    thi.x2=myth.x2;
+                    thi.y1=myth.y1;
+                    thi.y2=myth.y2;
+                    thi.t=myth.t;
                     if(state==0) {
                         currentpos[0]=camera.position[0];
                         currentpos[1]=camera.position[1];
                         currentpos[2]=camera.position[2];
-                        currentrot[0]=camera.rotation[0];
-                        currentrot[1]=camera.rotation[1];
-                        currentrot[2]=camera.rotation[2];
+          //              currentrot[0]=camera.rotation[0];
+            //            currentrot[1]=camera.rotation[1];
+              //          currentrot[2]=camera.rotation[2];
                     }
                     else {
                         currentpos[0]=pickedsphere.position[0];
                         currentpos[1]=pickedsphere.position[1];
                         currentpos[2]=pickedsphere.position[2];
-                        currentrot[0]=pickedsphere.rotation[0];
-                        currentrot[1]=pickedsphere.rotation[1];
-                        currentrot[2]=pickedsphere.rotation[2];
+                //        currentrot[0]=pickedsphere.rotation[0];
+                  //      currentrot[1]=pickedsphere.rotation[1];
+                    //    currentrot[2]=pickedsphere.rotation[2];
                     }
                     break;
                 case MotionEvent.ACTION_UP:
-                    dx = th[threadindex].x1 - thi.x1;
-                    dy = th[threadindex].y1 - thi.y1;
+                    dx = myth.x1 - thi.x1;
+                    dy = myth.y1 - thi.y1;
                     l = (float)(Math.sqrt(dx*dx+dy*dy));
                     dz = (float)(-2.0f);
-                    dt = th[threadindex].t - thi.t;
+                    dt = myth.t - thi.t;
                     speed = (float)(1000000000.0f/dt/500.0f);
                     if(state==1){
                         posspeed[0]=speed*dx;
@@ -200,9 +189,9 @@ public class MyPongScene extends MISScene {
                     }
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    if(th[threadindex].nb>1) {
-                        dx = th[threadindex].x2 - th[threadindex].x1;
-                        dy = th[threadindex].y2 - th[threadindex].y1;
+                    if(myth.nb>1) {
+                        dx = myth.x2 - myth.x1;
+                        dy = myth.y2 - myth.y1;
                         dxi = thi.x2 - thi.x1;
                         dyi = thi.y2 - thi.y1;
                         if(state==0) {
@@ -214,89 +203,61 @@ public class MyPongScene extends MISScene {
                     }
                     else
                     if(state==0) {
-                        dx = th[threadindex].x1 - thi.x1;
-                        dy = th[threadindex].y1 - thi.y1;
+                        dx = myth.x1 - thi.x1;
+                        dy = myth.y1 - thi.y1;
                         rot[0]=currentrot[0]+dy/10;
                         rot[1]=currentrot[1]+dx/10;
                         rot[2]=currentrot[2];
-                        camera.rotateto(rot);
+                      //  camera.rotateto(rot);
                     }
                     break;
-            }
-            threadindex++;
-            if(threadindex >= th.length){
-                threadindex=0;
             }
         }
 
         switch(state) {
             case 0 : // camera move
                 if(button2.picked) {
-                    button2.rotspeed(rot);
-                    button1.rotspeed(zero);
-                    button1.rotateto(zero);
+          //          button2.rotspeed(rot);
+            //        button1.rotspeed(zero);
+                    //button1.rotateto(zero);
                     button2.picked = false;
                     pickedsphere.moveto(pos1);
-                    pickedsphere.rotateto(rot1);
-                    pickedsphere.rotspeed(zero);
+              //      pickedsphere.rotateto(rot1);
+          //          pickedsphere.rotspeed(zero);
                     pickedsphere.posspeed(zero);
                     state=1;
                 }
                 if(button1.picked) {
-                    button1.rotspeed(rot);
+                //    button1.rotspeed(rot);
                     camera.moveto(campos);
-                    camera.rotateto(camrot);
-                    camera.rotspeed(zero);
+                    //camera.rotateto(camrot);
+                  //  camera.rotspeed(zero);
                     camera.posspeed(zero);
                     button1.picked = false;
                 }
                 break;
             case 1 : // object move
                 if(button1.picked) {
-                    button1.rotspeed(rot);
-                    button2.rotspeed(zero);
-                    button2.rotateto(zero);
+                    //button1.rotspeed(rot);
+                    //button2.rotspeed(zero);
+                    //button2.rotateto(zero);
                     state=0;
                     camera.moveto(campos);
-                    camera.rotateto(camrot);
-                    camera.rotspeed(zero);
+                    //camera.rotateto(camrot);
+                    //camera.rotspeed(zero);
                     camera.posspeed(zero);
                     button1.picked = false;
                 }
                 if(button2.picked) {
-                    button2.rotspeed(rot);
+                    //button2.rotspeed(rot);
                     pickedsphere.moveto(pos1);
-                    pickedsphere.rotateto(rot1);
-                    pickedsphere.rotspeed(zero);
+                    //pickedsphere.rotateto(rot1);
+                    //pickedsphere.rotspeed(zero);
                     pickedsphere.posspeed(zero);
                     button2.picked = false;
                 }
                 break;
         }
-    }
-
-    public boolean onTouchEvent(MotionEvent e) {
-        int i;
-        th[thwriteindex].action = e.getAction() & MotionEvent.ACTION_MASK;
-        th[thwriteindex].nb = e.getPointerCount();
-        th[thwriteindex].x1 = e.getX();
-        th[thwriteindex].y1 = e.getY();
-        th[thwriteindex].t= System.nanoTime();
-        if(e.getPointerCount() > 1) {
-            th[thwriteindex].x2 = e.getX(1);
-            th[thwriteindex].y2 = e.getY(1);
-        }
-        else{
-            th[thwriteindex].x2 = 0;
-            th[thwriteindex].y2 = 0;
-        }
-        i = thwriteindex+1;
-        if(i >= th.length)
-            i= 0;
-        if(i == threadindex) // if missed event in main loop we don't care
-            thwriteindex=thwriteindex;
-        if(i != threadindex) // if missed event in main loop we don't care
-            thwriteindex=i;
         return(true);
     }
 }

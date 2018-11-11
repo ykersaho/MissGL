@@ -1,5 +1,7 @@
 package com.example.yves_k1.mis;
 
+import android.opengl.Matrix;
+
 import static java.lang.Math.abs;
 import static java.lang.Math.decrementExact;
 import static java.lang.Math.max;
@@ -13,12 +15,14 @@ import static java.lang.Math.sqrt;
 public class MISCollision {
     int nbcol=0;
     float [] cc  = {0.0f, 0.0f, 0.0f, 0.0f};
+    float [] ccc  = {0.0f, 0.0f, 0.0f, 0.0f};
     float [] cn1 = {0.0f, 0.0f, 0.0f, 0.0f};
     float [] cn2 = {0.0f, 0.0f, 0.0f, 0.0f};
     int [] ct1;
     int [] ct2;
     int ct1l;
     int ct2l;
+    MISScene scene;
 
     boolean collision(float c1[], float r1, float v1[], float c2[], float r2, float v2[]){
         float [] sv1 = new float[3*4];
@@ -85,7 +89,7 @@ public class MISCollision {
             sc2[1] = (tv[1]+tv[5]+tv[9])/3;
             sc2[2] = (tv[2]+tv[6]+tv[10])/3;
             if(collision(sc1, sr1, sv1, sc2, sr2, tv))
-                        return(true);
+                return(true);
             tv[0] = m1[0];
             tv[1] = m1[1];
             tv[2] = m1[2];
@@ -127,8 +131,8 @@ public class MISCollision {
             sc2[1] = (tv[1]+tv[5]+tv[9])/3;
             sc2[2] = (tv[2]+tv[6]+tv[10])/3;
             if(collision(sc1, sr1, sv1, sc2, sr2, tv))
-                        return(true);
-            }
+                return(true);
+        }
         return(false);
     }
 
@@ -147,6 +151,16 @@ public class MISCollision {
 
     boolean collision(float c1[], float r1[], float v1[], float n1[], float c2[], float r2[], float v2[], float n2[]){
         int i, j;
+        int nbc=0;
+        cn1[0] = 0;
+        cn1[1] = 0;
+        cn1[2] = 0;
+        cn2[0] = 0;
+        cn2[1] = 0;
+        cn2[2] = 0;
+        ccc[0] = 0;
+        ccc[1] = 0;
+        ccc[2] = 0;
         for(i=0;i<ct1l;i++){
             for(j=0;j<ct2l;j++) {
                 int idi = ct1[i];
@@ -175,18 +189,35 @@ public class MISCollision {
                     tr1 = r1[idi];
                     tr2 = r2[idj];
                     if(collision(tc1, tr1, tv1, tc2, tr2, tv2)){
-                        cn1[0] = tn1[0];
-                        cn1[1] = tn1[1];
-                        cn1[2] = tn1[2];
-                        cn2[0] = tn2[0];
-                        cn2[1] = tn2[1];
-                        cn2[2] = tn2[2];
-                        return(true);
+                        cn1[0] += tn1[0];
+                        cn1[1] += tn1[1];
+                        cn1[2] += tn1[2];
+                        cn2[0] += tn2[0];
+                        cn2[1] += tn2[1];
+                        cn2[2] += tn2[2];
+                        ccc[0] += cc[0];
+                        ccc[1] += cc[1];
+                        ccc[2] += cc[2];
+                        nbc++;
                     }
                 }
             }
         }
-        return(false);
+        if(nbc > 0) {
+            cn1[0] /= nbc;
+            cn1[1] /= nbc;
+            cn1[2] /= nbc;
+            cn2[0] /= nbc;
+            cn2[1] /= nbc;
+            cn2[2] /= nbc;
+            ccc[0] /= nbc;
+            ccc[1] /= nbc;
+            ccc[2] /= nbc;
+            return (true);
+        }
+        else {
+            return (false);
+        }
     }
     void impact(MISObject o1, float [] n1, MISObject o2, float [] n2) {
         float [] G = new float[3];
@@ -194,36 +225,43 @@ public class MISCollision {
         float [] N = new float[3];
         float [] R = new float[3];
         float [] VP = new float[3];
-        float l;
-        G[0] = o1.mvbarycenter[0] - cc[0];
-        G[1] = o1.mvbarycenter[1] - cc[1];
-        G[2] = o1.mvbarycenter[2] - cc[2];
-        l=(float) Math.sqrt(G[0]*G[0]+G[1]*G[1]+G[2]*G[2]);
-        G[0] = G[0]/l;
-        G[1] = G[1]/l;
-        G[2] = G[2]/l;
-        l=(float) Math.sqrt(n2[0]*n2[0]+n2[1]*n2[1]+n2[2]*n2[2]);
-        N[0] = n2[0]/l;
-        N[1] = n2[1]/l;
-        N[2] = n2[2]/l;
-        System.arraycopy(o1.rotationspeed,0, R, 0, R.length);
+        float lv,lg,ln,lvp;
         System.arraycopy(o1.positionspeed,0, V, 0, V.length);
+        G[0] = o1.mvbarycenter[0] - ccc[0];
+        G[1] = o1.mvbarycenter[1] - ccc[1];
+        G[2] = o1.mvbarycenter[2] - ccc[2];
+
+        lg=(float) Math.sqrt(G[0]*G[0]+G[1]*G[1]+G[2]*G[2]);
+        G[0] = G[0]/lg;
+        G[1] = G[1]/lg;
+        G[2] = G[2]/lg;
+        ln=(float) Math.sqrt(n2[0]*n2[0]+n2[1]*n2[1]+n2[2]*n2[2]);
+        N[0] = n2[0]/ln;
+        N[1] = n2[1]/ln;
+        N[2] = n2[2]/ln;
+        lv=(float) Math.sqrt(V[0]*V[0]+V[1]*V[1]+V[2]*V[2]);
+        V[0] = V[0]/lv;
+        V[1] = V[1]/lv;
+        V[2] = V[2]/lv;
         VP[0] = G[1]*V[2]-G[2]*V[1];
         VP[1] = G[2]*V[0]-G[0]*V[2];
         VP[2] = G[0]*V[1]-G[1]*V[0];
+        lvp=(float) Math.sqrt(VP[0]*VP[0]+VP[1]*VP[1]+VP[2]*VP[2]);
+        VP[0] = VP[0]/lvp;
+        VP[1] = VP[1]/lvp;
+        VP[2] = VP[2]/lvp;
         float s = V[0]*N[0]+V[1]*N[1]+V[2]*N[2];
         float e = 2 * o2.m / (o1.m + o2.m);
         if(o1.m < 1000000) {
+            o1.rotationaxis(VP);
+            o1.rotspeed((lv/lg)*(180f/3.1416926f));
+            o1.rotcenter(o1.mvbarycenter);
             if(s < 0.0) {
-                V[0] = (V[0] - e * s * N[0] * o1.elasticity) * 0.95f;
-                V[1] = (V[1] - e * s * N[1] * o1.elasticity) * 0.95f;
-                V[2] = (V[2] - e * s * N[2] * o1.elasticity) * 0.95f;
+                V[0] = lv * (V[0] - e * s * N[0] * o1.elasticity) * 0.95f;
+                V[1] = lv * (V[1] - e * s * N[1] * o1.elasticity) * 0.95f;
+                V[2] = lv * (V[2] - e * s * N[2] * o1.elasticity) * 0.95f;
                 o1.posspeed(V);
             }
-            R[0] = 360*VP[0] * 0.95f;
-            R[1] = 360*VP[1] * 0.95f;
-            R[2] = 360*VP[2] * 0.95f;
-            o1.rotspeed(R);
         }
     }
 
@@ -288,12 +326,16 @@ public class MISCollision {
         impact(o2, cn2, o1, cn1);
     }
 
-    MISCollision(MISScene s) {
+    void run() {
         int i,j;
-        for(i=0;i<s.objects.size()-1;i++){
-            for(j=i+1;j<s.objects.size();j++){
-                    collision(s.objects.get(i), s.objects.get(j));
+        for(i=0;i<scene.objects.size()-1;i++){
+            for(j=i+1;j<scene.objects.size();j++){
+                collision(scene.objects.get(i), scene.objects.get(j));
             }
         }
+    }
+
+    MISCollision(MISScene s) {
+        scene = s;
     }
 }

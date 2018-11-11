@@ -16,6 +16,7 @@ import static android.opengl.GLU.gluUnProject;
  */
 
 public class MISPicking {
+    MISScene scene;
     void intersect(float [] p1, float [] p2, MISObject o) {
         float dp1p2;
         float d;
@@ -49,6 +50,10 @@ public class MISPicking {
     }
 
     MISPicking(MISScene s) {
+        scene = s;
+    }
+    void run(){
+        MISScene s = scene;
         int i;
         IntBuffer viewBuffer = null;
         int viewport[] = new int[4];

@@ -12,6 +12,7 @@ import javax.microedition.khronos.opengles.GL10;
  */
 
 public class MyDemoScene  extends MISScene {
+    touchhistory thi = new touchhistory();
     float[] gravity = {0.0f, -9.0f, 0.0f};  // gravity 9 m/s2
     float[] zero = {0.0f, 0.0f, 0.0f};
     float[] cameraposition = {0.0f, 1.0f, 6.0f};   // camera postion in meter
@@ -42,7 +43,7 @@ public class MyDemoScene  extends MISScene {
         sphere.loadtexture(assetManager, "sphere.gif");
         sphere.moveto(sphereposition);
         sphere.posspeed(spherespeed);
-        sphere.rotspeed(sphererotationspeed);
+        //sphere.rotspeed(sphererotationspeed);
         sphere.weight(sphereweight);
         sphere.posacceleration(gravity); // apply gravity else the object will float
         sphere.elasticity(sphereelasticity);
@@ -52,26 +53,15 @@ public class MyDemoScene  extends MISScene {
         cube.posspeed(cubespeed);
         cube.posacceleration(gravity);
         cube.elasticity(cubeelasticity);
-        cube.rotspeed(cuberotationspeed);
+        //cube.rotspeed(cuberotationspeed);
         cube.weight(cubeweight);
         camera.moveto(cameraposition);
-        camera.rotateto(camerarotation);
-        camera.rotspeed(camerarotationspeed);
+        //camera.rotateto(camerarotation);
+        //camera.rotspeed(camerarotationspeed);
         camera.posspeed(camerapositionspeed);
         addobject((MISObject)sphere);
         addobject((MISObject)cube);
         addobject((MISObject)ground);
         // that's it !
-    }
-
-    // main scene state machine
-    public void statemachine() {
-        // not used for this demo
-    }
-
-    // touch screen event management
-    public boolean onTouchEvent(MotionEvent e) {
-        // touch event not used for this demo
-        return (false);
     }
 }

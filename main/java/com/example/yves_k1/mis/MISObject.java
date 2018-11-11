@@ -46,6 +46,7 @@ import static android.opengl.GLES20.glUniformMatrix4fv;
 import static android.opengl.GLES20.glUseProgram;
 import static android.opengl.GLES20.glVertexAttribPointer;
 import static android.opengl.GLUtils.texImage2D;
+import static java.lang.Thread.sleep;
 
 /**
  * Created by Yves_K1 on 18/06/2018.
@@ -53,6 +54,7 @@ import static android.opengl.GLUtils.texImage2D;
 
 public class MISObject {
     float[] mModelMatrix = new float[16];
+    float[] mMotionMatrix = new float[16];
     String name;
     boolean collision=false;
     boolean picked=false;
@@ -68,11 +70,13 @@ public class MISObject {
     float[] ray;
     float bbray;
     float position[] = {0.0f, 0.0f, 0.0f};
-    float rotation[] = {0.0f, 0.0f, 0.0f};
+    float rotationaxis[] = {1.0f, 0.0f, 0.0f};
     float positionspeed[] = {0.0f, 0.0f, 0.0f};
-    float rotationspeed[] = {0.0f, 0.0f, 0.0f};
+    float rotationcenter[] = {0.0f, 0.0f, 0.0f};
+    float rotationangle = 0.0f;
+    float rotationspeed = 0.0f;
     float positionacceleration[] = {0.0f, 0.0f, 0.0f};
-    float rotationacceleration[] = {0.0f, 0.0f, 0.0f};
+    float rotationacceleration = 0.0f;
     FloatBuffer matrixBuffer = null;
     FloatBuffer vertexBuffer = null;
     FloatBuffer normalBuffer = null;
@@ -90,6 +94,15 @@ public class MISObject {
     public MISObject(String s){
         name = s;
     }
+    public MISObject(String s, AssetManager asset, String object, float scale, String texture, float posx, float posy, float posz) throws IOException {
+        name = s;
+        loadobj(asset, object, scale);
+        loadtexture(asset, texture);
+        position[0] = posx;
+        position[1] = posy;
+        position[2] = posz;
+        updatematrix();
+    }
     void loadobj(AssetManager assetManager, String name, float scale) throws IOException {
         InputStream input = null;
         try {
@@ -99,6 +112,7 @@ public class MISObject {
         }
         MISObjloader obj = new MISObjloader(input, scale);
         define(obj.vertices, obj.normals, obj.textures, obj.indices);
+        updatematrix();
     }
 
     public void loadtexture(AssetManager assetManager, String name) {
@@ -234,17 +248,32 @@ public class MISObject {
         elasticity = el;
     }
 
+    void updatematrix(){
+        Matrix.setIdentityM(mModelMatrix, 0);
+        Matrix.translateM(mModelMatrix, 0, position[0], position[1], position[2]);
+        Matrix.rotateM(mModelMatrix, 0, rotationangle, rotationaxis[0], rotationaxis[1], rotationaxis[2]);
+        rotationcenter[0] = barycenter[0] + position[0];
+        rotationcenter[1] = barycenter[1] + position[1];
+        rotationcenter[2] = barycenter[2] + position[2];
+    }
     void moveto(float [] pos){
         position[0] = pos[0];
         position[1] = pos[1];
         position[2] = pos[2];
+        updatematrix();
         t0 = System.nanoTime();
     }
 
-    void rotateto(float [] rot){
-        rotation[0] = rot[0];
-        rotation[1] = rot[1];
-        rotation[2] = rot[2];
+    void rotationangle(float rot) {
+        rotationangle = rot;
+        updatematrix();
+        t0 = System.nanoTime();
+    }
+
+    void rotationaxis(float [] rot){
+        rotationaxis[0] = rot[0];
+        rotationaxis[1] = rot[1];
+        rotationaxis[2] = rot[2];
         t0 = System.nanoTime();
     }
 
@@ -254,10 +283,14 @@ public class MISObject {
         positionspeed[2] = pos[2];
     }
 
-    void rotspeed(float [] rot){
-        rotationspeed[0] = rot[0];
-        rotationspeed[1] = rot[1];
-        rotationspeed[2] = rot[2];
+    void rotspeed(float rot){
+        rotationspeed= rot;
+    }
+
+    void rotcenter(float [] rot){
+        rotationcenter[0] = rot[0];
+        rotationcenter[1] = rot[1];
+        rotationcenter[2] = rot[2];
     }
 
     void posacceleration(float [] pos){
@@ -266,30 +299,47 @@ public class MISObject {
         positionacceleration[2] = pos[2];
     }
 
-    void rotacceleration(float [] rot){
-        rotationacceleration[0] = rot[0];
-        rotationacceleration[1] = rot[1];
-        rotationacceleration[2] = rot[2];
+    void rotacceleration(float rot){
+        rotationacceleration = rot;
     }
 
-    void updateposition(){
+    void updateposition() {
         long t1 = System.nanoTime();
-        long dt = t1 - t0;
-        if(dt > 20000000)
-            dt = 20000000;   // CPU is too slow no real time
-        t0=t1;
-        position[0] += positionspeed[0]*dt/1000000000.0f;
-        position[1] += positionspeed[1]*dt/1000000000.0f;
-        position[2] += positionspeed[2]*dt/1000000000.0f;
-        rotation[0] += rotationspeed[0]*dt/1000000000.0f;
-        rotation[1] += rotationspeed[1]*dt/1000000000.0f;
-        rotation[2] += rotationspeed[2]*dt/1000000000.0f;
-        positionspeed[0] += positionacceleration[0] * dt / 1000000000.0f;
-        positionspeed[1] += positionacceleration[1] * dt / 1000000000.0f;
-        positionspeed[2] += positionacceleration[2] * dt / 1000000000.0f;
-        rotationspeed[0] += rotationacceleration[0] * dt / 1000000000.0f;
-        rotationspeed[1] += rotationacceleration[1] * dt / 1000000000.0f;
-        rotationspeed[2] += rotationacceleration[2] * dt / 1000000000.0f;
+        long ldt = t1 - t0;
+        float dt;
+        if (ldt > 20000000)
+            ldt = 20000000;   // CPU is too slow no real time
+        t0 = t1;
+        dt = (float) ((double) ldt / 1000000000.0);
+        Matrix.setIdentityM(mMotionMatrix, 0);
+        Matrix.translateM(mMotionMatrix, 0, positionspeed[0] * dt, positionspeed[1] * dt, positionspeed[2] * dt);
+        Matrix.translateM(mMotionMatrix, 0, rotationcenter[0], rotationcenter[1], rotationcenter[2]);
+        Matrix.rotateM(mMotionMatrix, 0, rotationspeed * dt, rotationaxis[0], rotationaxis[1], rotationaxis[2]);
+        Matrix.translateM(mMotionMatrix, 0, -rotationcenter[0], -rotationcenter[1], -rotationcenter[2]);
+        Matrix.multiplyMM(mModelMatrix, 0, mMotionMatrix, 0, mModelMatrix, 0);        //Matrix.translateM(mModelMatrix, 0, rotationcenter[0], rotationcenter[1], rotationcenter[2]);
+        rotationcenter[0] += positionspeed[0] * dt;
+        rotationcenter[1] += positionspeed[1] * dt;
+        rotationcenter[2] += positionspeed[2] * dt;
+        positionspeed[0] += positionacceleration[0] * dt;
+        positionspeed[1] += positionacceleration[1] * dt;
+        positionspeed[2] += positionacceleration[2] * dt;
+        rotationspeed += rotationacceleration * dt;
+
+        Matrix.multiplyMV(mvbarycenter, 0, mModelMatrix, 0, barycenter, 0);
+        position[0] = mvbarycenter[0];
+        position[1] = mvbarycenter[1];
+        position[2] = mvbarycenter[2];
+        rotationcenter[0] = mvbarycenter[0];
+        rotationcenter[1] = mvbarycenter[1];
+        rotationcenter[2] = mvbarycenter[2];
+
+        for (int i=0;i<nbtriangle;i++){
+            Matrix.multiplyMV(mvcenters, i*4, mModelMatrix, 0, centers, i*4);
+            Matrix.multiplyMV(mvnormals, i*4, mModelMatrix, 0, normals, i*4);
+            Matrix.multiplyMV(mvvertices, i*12, mModelMatrix, 0, vertices, i*12);
+            Matrix.multiplyMV(mvvertices, i*12+4, mModelMatrix, 0, vertices, i*12+4);
+            Matrix.multiplyMV(mvvertices, i*12+8, mModelMatrix, 0, vertices, i*12+8);
+        }
     }
 
     public void draw(MISShader shader, float[] viewMatrix, float[] projectionMatrix) {
@@ -305,12 +355,7 @@ public class MISObject {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texturesid[0]);
 
-        Matrix.setIdentityM(mModelMatrix, 0);
         Matrix.setIdentityM(identity, 0);
-        Matrix.translateM(mModelMatrix, 0, position[0], position[1], position[2]);
-        Matrix.rotateM(mModelMatrix, 0, rotation[0], 1.0f, 0.0f, 0.0f);
-        Matrix.rotateM(mModelMatrix, 0, rotation[1], 0.0f, 1.0f, 0.0f);
-        Matrix.rotateM(mModelMatrix, 0, rotation[2], 0.0f, 0.0f, 1.0f);
         if(m != 0) {
             Matrix.multiplyMM(mvmatrix, 0, viewMatrix, 0, mModelMatrix, 0);
         }
@@ -319,6 +364,7 @@ public class MISObject {
         }
 
         Matrix.multiplyMM(pmatrix, 0, projectionMatrix, 0, mvmatrix, 0);
+
         // Add program to OpenGL ES environment
         glUseProgram(shader.mProgram);
 
@@ -349,14 +395,5 @@ public class MISObject {
         glDisableVertexAttribArray(shader.mPositionHandle);
         glDisableVertexAttribArray(shader.mNormalHandle);
         glDisableVertexAttribArray(shader.mTexCoordnateHandle);
-
-        Matrix.multiplyMV(mvbarycenter, 0, mvmatrix, 0, barycenter, 0);
-        for (int i=0;i<nbtriangle;i++){
-            Matrix.multiplyMV(mvcenters, i*4, mvmatrix, 0, centers, i*4);
-            Matrix.multiplyMV(mvnormals, i*4, mvmatrix, 0, normals, i*4);
-            Matrix.multiplyMV(mvvertices, i*12, mvmatrix, 0, vertices, i*12);
-            Matrix.multiplyMV(mvvertices, i*12+4, mvmatrix, 0, vertices, i*12+4);
-            Matrix.multiplyMV(mvvertices, i*12+8, mvmatrix, 0, vertices, i*12+8);
-        }
     }
 }

@@ -10,10 +10,11 @@ import java.nio.FloatBuffer;
  */
 
 public class MISLight extends MISObject {
-    public MISLight(int id) {
+    public MISLight(int id, float posx, float posy, float posz) {
         super("light");
+        float [] lightpos = {posx, posy, posz};
+        moveto(lightpos);
     }
-
     public void move() {
     }
 }
