@@ -187,6 +187,10 @@ public class MISObject {
             this.normals[4*i+1] = normals[9*i+1]+normals[9*i+4]+normals[9*i+7];
             this.normals[4*i+2] = normals[9*i+2]+normals[9*i+5]+normals[9*i+8];
             this.normals[4*i+3] = 0.0f;
+            float ln = Matrix.length(this.normals[4*i], this.normals[4*i+1],this.normals[4*i+2] );
+            this.normals[4*i] /= ln;
+            this.normals[4*i+1] /= ln;
+            this.normals[4*i+2] /= ln;
             float dx1 = vertices[9*i]   - this.centers[4*i];
             float dy1 = vertices[9*i+1] - this.centers[4*i+1];
             float dz1 = vertices[9*i+2] - this.centers[4*i+2];

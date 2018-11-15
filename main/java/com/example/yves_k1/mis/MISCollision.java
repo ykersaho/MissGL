@@ -172,33 +172,37 @@ public class MISCollision {
                 float d2 = r1[idi]+r2[idj];
                 d2 = d2*d2;
                 if(d1 < d2) {
-                    float [] tv1 = new float[12];
-                    float [] tv2 = new float[12];
-                    float [] tc1 = new float[4];
-                    float [] tc2 = new float[4];
-                    float [] tn1 = new float[4];
-                    float [] tn2 = new float[4];
-                    float tr1;
-                    float tr2;
-                    System.arraycopy(v1, idi * 12, tv1, 0, tv1.length);
-                    System.arraycopy(v2, idj * 12, tv2, 0, tv2.length);
-                    System.arraycopy(c1, idi * 4, tc1, 0, tc1.length);
-                    System.arraycopy(c2, idj * 4, tc2, 0, tc2.length);
-                    System.arraycopy(n1, idi * 4, tn1, 0, tn1.length);
-                    System.arraycopy(n2, idj * 4, tn2, 0, tn2.length);
-                    tr1 = r1[idi];
-                    tr2 = r2[idj];
-                    if(collision(tc1, tr1, tv1, tc2, tr2, tv2)){
-                        cn1[0] += tn1[0];
-                        cn1[1] += tn1[1];
-                        cn1[2] += tn1[2];
-                        cn2[0] += tn2[0];
-                        cn2[1] += tn2[1];
-                        cn2[2] += tn2[2];
-                        ccc[0] += cc[0];
-                        ccc[1] += cc[1];
-                        ccc[2] += cc[2];
-                        nbc++;
+                    d1 = abs(dx*n1[4*idi]+dy*n1[4*idi+1]+dz*n1[4*idi+2]);
+                    d2 = abs(dx*n2[4*idj]+dy*n2[4*idj+1]+dz*n2[4*idj+2]);
+                    if((d1 < r2[idj]) && (d2 < r1[idi])) {
+                        float[] tv1 = new float[12];
+                        float[] tv2 = new float[12];
+                        float[] tc1 = new float[4];
+                        float[] tc2 = new float[4];
+                        float[] tn1 = new float[4];
+                        float[] tn2 = new float[4];
+                        float tr1;
+                        float tr2;
+                        System.arraycopy(v1, idi * 12, tv1, 0, tv1.length);
+                        System.arraycopy(v2, idj * 12, tv2, 0, tv2.length);
+                        System.arraycopy(c1, idi * 4, tc1, 0, tc1.length);
+                        System.arraycopy(c2, idj * 4, tc2, 0, tc2.length);
+                        System.arraycopy(n1, idi * 4, tn1, 0, tn1.length);
+                        System.arraycopy(n2, idj * 4, tn2, 0, tn2.length);
+                        tr1 = r1[idi];
+                        tr2 = r2[idj];
+                        if (collision(tc1, tr1, tv1, tc2, tr2, tv2)) {
+                            cn1[0] += tn1[0];
+                            cn1[1] += tn1[1];
+                            cn1[2] += tn1[2];
+                            cn2[0] += tn2[0];
+                            cn2[1] += tn2[1];
+                            cn2[2] += tn2[2];
+                            ccc[0] += cc[0];
+                            ccc[1] += cc[1];
+                            ccc[2] += cc[2];
+                            nbc++;
+                        }
                     }
                 }
             }
@@ -300,8 +304,12 @@ public class MISCollision {
             d1 = dx*dx+dy*dy+dz*dz;
             d2 = o1.ray[i]+o2.bbray;
             d2 = d2*d2;
-            if(d1 < d2)
-                ct1[ct1l++]=i;
+            if(d1 < d2){
+                d1=abs(o1.mvnormals[4*i]*dx+o1.mvnormals[4*i+1]*dy+o1.mvnormals[4*i+2]*dz);
+                if(d1 < o2.bbray) {
+                    ct1[ct1l++] = i;
+                }
+            }
         }
 
         // Eliminate most obvious cases for object 2
@@ -315,7 +323,10 @@ public class MISCollision {
             d2 = o2.ray[i]+o1.bbray;
             d2 = d2*d2;
             if(d1 < d2)
-                ct2[ct2l++]=i;
+                d1=abs(o2.mvnormals[4*i]*dx+o2.mvnormals[4*i+1]*dy+o2.mvnormals[4*i+2]*dz);
+                if(d1 < o1.bbray) {
+                    ct2[ct2l++] = i;
+                }
         }
         if (!collision(o1.mvcenters, o1.ray, o1.mvvertices, o1.mvnormals, o2.mvcenters, o2.ray, o2.mvvertices, o2.mvnormals))
             return;

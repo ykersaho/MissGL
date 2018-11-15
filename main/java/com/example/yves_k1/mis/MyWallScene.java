@@ -71,6 +71,7 @@ public class MyWallScene extends MISScene {
                     l = (float)(Math.sqrt(dx*dx+dy*dy));
                     dz = (float)(-2.0f);
                     dt = myth.t - thi.t;
+                    if(dt==0) break;
                     speed = (float)(1000000000.0f/dt/500.0f);
                     posspeed[0]=speed*dx;
                     posspeed[1]=-speed*dy;
