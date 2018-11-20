@@ -223,14 +223,21 @@ public class MISCollision {
             return (false);
         }
     }
-    void impact(MISObject o1, float [] n1, MISObject o2, float [] n2) {
+    void impact(MISObject o1, float [] n1, MISObject o2, float [] n2, float VOUT[]) {
         float [] G = new float[3];
-        float [] V = new float[3];
+        float [] V1 = new float[3];
+        float [] V2 = new float[3];
+        float [] V1X = new float[3];
+        float [] V1Y = new float[3];
         float [] N = new float[3];
         float [] R = new float[3];
         float [] VP = new float[3];
-        float lv,lg,ln,lvp;
-        System.arraycopy(o1.positionspeed,0, V, 0, V.length);
+        float lv1,lg,ln,lvp;
+        System.arraycopy(o1.positionspeed,0, V1, 0, V1.length);
+        System.arraycopy(o2.positionspeed,0, V2, 0, V2.length);
+        VOUT[0] = V1[0];
+        VOUT[1] = V1[1];
+        VOUT[2] = V1[2];
         G[0] = o1.mvbarycenter[0] - ccc[0];
         G[1] = o1.mvbarycenter[1] - ccc[1];
         G[2] = o1.mvbarycenter[2] - ccc[2];
@@ -243,28 +250,35 @@ public class MISCollision {
         N[0] = n2[0]/ln;
         N[1] = n2[1]/ln;
         N[2] = n2[2]/ln;
-        lv=(float) Math.sqrt(V[0]*V[0]+V[1]*V[1]+V[2]*V[2]);
-        V[0] = V[0]/lv;
-        V[1] = V[1]/lv;
-        V[2] = V[2]/lv;
-        VP[0] = G[1]*V[2]-G[2]*V[1];
-        VP[1] = G[2]*V[0]-G[0]*V[2];
-        VP[2] = G[0]*V[1]-G[1]*V[0];
+        VP[0] = G[1]*V1[2]-G[2]*V1[1];
+        VP[1] = G[2]*V1[0]-G[0]*V1[2];
+        VP[2] = G[0]*V1[1]-G[1]*V1[0];
         lvp=(float) Math.sqrt(VP[0]*VP[0]+VP[1]*VP[1]+VP[2]*VP[2]);
         VP[0] = VP[0]/lvp;
         VP[1] = VP[1]/lvp;
         VP[2] = VP[2]/lvp;
-        float s = V[0]*N[0]+V[1]*N[1]+V[2]*N[2];
-        float e = 2 * o2.m / (o1.m + o2.m);
+        float s1 = (V1[0]*N[0]+V1[1]*N[1]+V1[2]*N[2]);
+        float s2 = (V2[0]*N[0]+V2[1]*N[1]+V2[2]*N[2]);
+        float e1 = (o1.m - o2.m)  / (o1.m + o2.m);
+        float e2 = 2 * o2.m / (o1.m + o2.m);
         if(o1.m < 1000000) {
-            o1.rotationaxis(VP);
-            o1.rotspeed((lv/lg)*(180f/3.1416926f));
+            lv1=(float) Math.sqrt(V1[0]*V1[0]+V1[1]*V1[1]+V1[2]*V1[2]);
+            if(lvp != 0.0f)
+                o1.rotationaxis(VP);
+            o1.rotspeed((lv1/lg)*(180f/3.1416926f));
             o1.rotcenter(o1.mvbarycenter);
-            if(s < 0.0) {
-                V[0] = lv * (V[0] - e * s * N[0] * o1.elasticity) * 0.95f;
-                V[1] = lv * (V[1] - e * s * N[1] * o1.elasticity) * 0.95f;
-                V[2] = lv * (V[2] - e * s * N[2] * o1.elasticity) * 0.95f;
-                o1.posspeed(V);
+            float f = e1 * s1 + e2 * s2;
+            if(s1 <= 0.0) {
+                V1X[0] = f * N[0] * o1.elasticity;
+                V1X[1] = f * N[1] * o1.elasticity;
+                V1X[2] = f * N[2] * o1.elasticity;
+                V1Y[0] = V1[0] - s1 * N[0];
+                V1Y[1] = V1[1] - s1 * N[1];
+                V1Y[2] = V1[2] - s1 * N[2];
+                VOUT[0] = V1X[0];
+                VOUT[0] = (V1X[0] + V1Y[0] * 0.8f);
+                VOUT[1] = (V1X[1] + V1Y[1] * 0.8f);
+                VOUT[2] = (V1X[2] + V1Y[2] * 0.8f);
             }
         }
     }
@@ -333,8 +347,16 @@ public class MISCollision {
 
         o1.setcollisionstate(true);
         o2.setcollisionstate(true);
-        impact(o1, cn1, o2, cn2);
-        impact(o2, cn2, o1, cn1);
+
+        float [] V1 = new float[3];
+        float [] V2 = new float[3];
+        impact(o1, cn1, o2, cn2, V1);
+        impact(o2, cn2, o1, cn1, V2);
+        if((V1[0] == 0.0f) && (V2[0] == 0.0f)) {
+            o1.posspeed(V2);
+        }
+        o1.posspeed(V1);
+        o2.posspeed(V2);
     }
 
     void run() {

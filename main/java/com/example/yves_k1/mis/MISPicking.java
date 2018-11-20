@@ -79,8 +79,8 @@ public class MISPicking {
                 if(s.objects.get(i).m==0)
                     intersect(p1, p2, s.objects.get(i));
         }
-        gluUnProject(s.pickpointer[0], viewport[3]-s.pickpointer[1], 0.0f, s.camera.mModelMatrix, 0, s.mProjectionMatrix, 0, viewport, 0, p1, 0);
-        gluUnProject(s.pickpointer[0], viewport[3]-s.pickpointer[1], 1.0f, s.camera.mModelMatrix, 0, s.mProjectionMatrix, 0, viewport, 0, p2, 0);
+        gluUnProject(s.pickpointer[0], viewport[3]-s.pickpointer[1], 0.0f, s.camera.mViewMatrix, 0, s.mProjectionMatrix, 0, viewport, 0, p1, 0);
+        gluUnProject(s.pickpointer[0], viewport[3]-s.pickpointer[1], 1.0f, s.camera.mViewMatrix, 0, s.mProjectionMatrix, 0, viewport, 0, p2, 0);
         p1[0] /= p1[3];
         p1[1] /= p1[3];
         p1[2] /= p1[3];

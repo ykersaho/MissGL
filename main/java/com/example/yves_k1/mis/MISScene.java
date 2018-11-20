@@ -71,6 +71,17 @@ public class MISScene {
         return(hmap.get(s));
     }
 
+    public MISObject getpickedobject(){
+        for (int i = 0; i < objects.size(); i++) {
+            if(     (objects.get(i).m > 0)&&
+                    (objects.get(i).m < 1000000)&&
+                    (objects.get(i).picked == true)) {
+                return (objects.get(i));
+            }
+        }
+        return(null);
+    }
+
     public void addlight(MISLight light){
         lights.add(light);
     }

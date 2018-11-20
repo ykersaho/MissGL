@@ -260,6 +260,7 @@ public class MISObject {
         rotationcenter[1] = barycenter[1] + position[1];
         rotationcenter[2] = barycenter[2] + position[2];
     }
+
     void moveto(float [] pos){
         position[0] = pos[0];
         position[1] = pos[1];

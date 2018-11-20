@@ -13,13 +13,17 @@ import static android.opengl.GLES10.GL_LIGHT1;
  */
 
 public class MyWallScene extends MISScene {
+    MISObject activeobject = null;
     touchhistory thi = new touchhistory();
     float [] gravity= {0.0f, -9.0f, 0.0f};
     float [] campos = {0.0f, 1.0f, 3.0f};
     float [] ballpos = {0.0f, 0.5f, 2.0f};
 
     MyWallScene(AssetManager assetManager) throws IOException {
-        addobject(new MISObject("ball", assetManager, "spheresmall.obj", 1.0f / 50.0f, "ball.jpg", 0.0f, 0.5f, 2.0f));
+        addobject(new MISObject("ball", assetManager, "spheresmall.obj", 1.0f / 50.0f, "ball.jpg", 0.0f, 3.5f, 1.0f));
+        addobject(new MISObject("ball1", assetManager, "spheresmall.obj", 1.0f / 50.0f, "ball.jpg", 0.1f, 2.5f, 1.0f));
+        addobject(new MISObject("ball2", assetManager, "spheresmall.obj", 1.0f / 50.0f, "ball.jpg", 0.2f, 1.5f, 1.0f));
+        addobject(new MISObject("ball3", assetManager, "spheresmall.obj", 1.0f / 50.0f, "ball.jpg", 0.3f, 0.5f, 1.0f));
         addobject(new MISObject("ground", assetManager, "ground.obj", 10.0f, "tennis.jpg", 0.0f, 0.0f, 0.0f));
         addobject(new MISObject("wall", assetManager, "wall.obj", 10.0f, "wall.jpg", 0.0f, 2.5f, -5.0f));
         addobject(new MISObject("button", assetManager, "button.obj", 1.0f/5.0f, "button.png", -0.4f, 0.9f, -1.5f));
@@ -28,6 +32,15 @@ public class MyWallScene extends MISScene {
         getobject("ball").posacceleration(gravity);
         getobject("ball").weight(20);
         getobject("ball").elasticity(0.7f);
+        getobject("ball1").posacceleration(gravity);
+        getobject("ball1").weight(20);
+        getobject("ball1").elasticity(0.7f);
+        getobject("ball2").posacceleration(gravity);
+        getobject("ball2").weight(20);
+        getobject("ball2").elasticity(0.7f);
+        getobject("ball3").posacceleration(gravity);
+        getobject("ball3").weight(20);
+        getobject("ball3").elasticity(0.7f);
         getobject("ground").weight(1000000);
         getobject("wall").weight(1000000);
         getobject("button").weight(0);
@@ -45,10 +58,15 @@ public class MyWallScene extends MISScene {
         float dt;
         float speed;
         float l;
-        MISObject ball = getobject("ball");
+        MISObject object = getpickedobject();
         MISObject button = getobject("button");
 
-        camera.positionspeed[0] = (ball.position[0] - camera.position[0])*2.0f;
+        if(object != null) {
+            activeobject=object;
+        }
+        if(activeobject != null) {
+            camera.positionspeed[0] = (activeobject.position[0] - camera.position[0]) * 2.0f;
+        }
 
         if(gettouchevent(myth)) { // touch event in the queue
             switch (myth.action) {
@@ -57,38 +75,44 @@ public class MyWallScene extends MISScene {
                 case MotionEvent.ACTION_POINTER_UP:
                     pickpointer[0] = myth.x1;
                     pickpointer[1] = myth.y1;
-                    thi.action=myth.action;
-                    thi.nb=myth.nb;
-                    thi.x1=myth.x1;
-                    thi.x2=myth.x2;
-                    thi.y1=myth.y1;
-                    thi.y2=myth.y2;
-                    thi.t=myth.t;
+                    thi.action = myth.action;
+                    thi.nb = myth.nb;
+                    thi.x1 = myth.x1;
+                    thi.x2 = myth.x2;
+                    thi.y1 = myth.y1;
+                    thi.y2 = myth.y2;
+                    thi.t = myth.t;
                     break;
                 case MotionEvent.ACTION_UP:
                     dx = myth.x1 - thi.x1;
                     dy = myth.y1 - thi.y1;
-                    l = (float)(Math.sqrt(dx*dx+dy*dy));
-                    dz = (float)(-2.0f);
+                    l = (float) (Math.sqrt(dx * dx + dy * dy));
+                    dz = (float) (-2.0f);
                     dt = myth.t - thi.t;
-                    if(dt==0) break;
-                    speed = (float)(1000000000.0f/dt/500.0f);
-                    posspeed[0]=speed*dx;
-                    posspeed[1]=-speed*dy;
-                    posspeed[2]=speed*dz*l;
-                    ball.posacceleration(gravity);
-                    ball.posspeed(posspeed);
+                    if (dt == 0) break;
+                    speed = (float) (1000000000.0f / dt / 500.0f);
+                    posspeed[0] = speed * dx;
+                    posspeed[1] = -speed * dy;
+                    posspeed[2] = speed * dz * l;
+                    if (activeobject != null) {
+                            activeobject.posacceleration(gravity);
+                            activeobject.posspeed(posspeed);
+                    }
                     break;
                 case MotionEvent.ACTION_MOVE:
+                    pickpointer[0] = myth.x1;
+                    pickpointer[1] = myth.y1;
                     break;
             }
         }
 
         if(button.picked) {
-            ball.moveto(ballpos);
-            ball.posspeed(zero);
-            ball.rotspeed(0);
-            ball.posacceleration(zero);
+            if(activeobject != null) {
+                activeobject.moveto(ballpos);
+                activeobject.posspeed(zero);
+                activeobject.rotspeed(0);
+                activeobject.posacceleration(zero);
+            }
             camera.moveto(campos);
             camera.posspeed(zero);
         }
