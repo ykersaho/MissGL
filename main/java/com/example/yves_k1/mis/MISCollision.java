@@ -267,19 +267,23 @@ public class MISCollision {
                 o1.rotationaxis(VP);
             o1.rotspeed((lv1/lg)*(180f/3.1416926f));
             o1.rotcenter(o1.mvbarycenter);
-            float f = e1 * s1 + e2 * s2;
-            if(s1 <= 0.0) {
-                V1X[0] = f * N[0] * o1.elasticity;
-                V1X[1] = f * N[1] * o1.elasticity;
-                V1X[2] = f * N[2] * o1.elasticity;
-                V1Y[0] = V1[0] - s1 * N[0];
-                V1Y[1] = V1[1] - s1 * N[1];
-                V1Y[2] = V1[2] - s1 * N[2];
-                VOUT[0] = V1X[0];
-                VOUT[0] = (V1X[0] + V1Y[0] * 0.8f);
-                VOUT[1] = (V1X[1] + V1Y[1] * 0.8f);
-                VOUT[2] = (V1X[2] + V1Y[2] * 0.8f);
+            if(s1 > s2) {
+                V1X[0] = s1 * N[0];
+                V1X[1] = s1 * N[1];
+                V1X[2] = s1 * N[2];
             }
+            else {
+                float f = e1 * s1 + e2 * s2;
+                V1X[0] += f * N[0] * o1.elasticity;
+                V1X[1] += f * N[1] * o1.elasticity;
+                V1X[2] += f * N[2] * o1.elasticity;
+            }
+            V1Y[0] = (V1[0] - s1 * N[0])*0.8f;
+            V1Y[1] = (V1[1] - s1 * N[1])*0.8f;
+            V1Y[2] = (V1[2] - s1 * N[2])*0.8f;
+            VOUT[0] = V1X[0] + V1Y[0];
+            VOUT[1] = V1X[1] + V1Y[1];
+            VOUT[2] = V1X[2] + V1Y[2];
         }
     }
 
