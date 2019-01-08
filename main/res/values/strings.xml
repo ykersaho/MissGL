@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">MIS</string>
+    <string name="app_name">MISSGLNDK</string>
+    <string name="action_settings">Settings</string>
 </resources>
