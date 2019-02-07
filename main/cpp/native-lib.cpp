@@ -28,17 +28,19 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_yves_missglndk_MISObject_updatenativeobject(JNIEnv *env, jobject instance, jstring name_,
                                             jfloatArray modelmatrix_, jfloatArray positionspeed_, jfloat rotationspeed,
-                                         jfloatArray rotationaxis_) {
+                                         jfloatArray rotationaxis_, jfloatArray rotationcenter_) {
     const char *name = env->GetStringUTFChars(name_, 0);
     jfloat *positionspeed = env->GetFloatArrayElements(positionspeed_, NULL);
     jfloat *rotationaxis = env->GetFloatArrayElements(rotationaxis_, NULL);
+    jfloat *rotationcenter = env->GetFloatArrayElements(rotationcenter_, NULL);
     jfloat *modelmatrix= env->GetFloatArrayElements(modelmatrix_, NULL);
 
-    updateobject(name, modelmatrix, positionspeed, rotationspeed, rotationaxis);
+    updateobject(name, modelmatrix, positionspeed, rotationspeed, rotationaxis, rotationcenter);
 
     env->ReleaseStringUTFChars(name_, name);
     env->ReleaseFloatArrayElements(positionspeed_, positionspeed, 0);
     env->ReleaseFloatArrayElements(rotationaxis_, rotationaxis, 0);
+    env->ReleaseFloatArrayElements(rotationcenter_, rotationcenter, 0);
     env->ReleaseFloatArrayElements(modelmatrix_, modelmatrix, 0);
 }
 
@@ -77,6 +79,23 @@ Java_com_example_yves_missglndk_MISObject_getrotationaxis(JNIEnv *env, jobject i
 }
 
 extern "C"
+JNIEXPORT jfloatArray  JNICALL
+Java_com_example_yves_missglndk_MISObject_getrotationcenter(JNIEnv *env, jobject instance, jstring name_)
+{
+    jfloatArray result;
+    jfloat rotationcenter[3];
+    const char *name = env->GetStringUTFChars(name_, 0);
+    result = env->NewFloatArray(sizeof(rotationcenter));
+
+    getrotationcenter(name, rotationcenter, sizeof(rotationcenter));
+
+    env->SetFloatArrayRegion(result, 0, sizeof(rotationcenter), rotationcenter);
+
+    env->ReleaseStringUTFChars(name_, name);
+    return result;
+}
+
+extern "C"
 JNIEXPORT jfloat JNICALL
 Java_com_example_yves_missglndk_MISObject_getrotationspeed(JNIEnv *env, jobject instance, jstring name_)
 {
@@ -86,6 +105,30 @@ Java_com_example_yves_missglndk_MISObject_getrotationspeed(JNIEnv *env, jobject 
 
     env->ReleaseStringUTFChars(name_, name);
     return rotationspeed;
+}
+
+extern "C"
+JNIEXPORT jfloat JNICALL
+Java_com_example_yves_missglndk_MISObject_getrotationacceleration(JNIEnv *env, jobject instance, jstring name_)
+{
+    const char *name = env->GetStringUTFChars(name_, 0);
+
+    jfloat rotationacceleration = getrotationacceleration(name);
+
+    env->ReleaseStringUTFChars(name_, name);
+    return rotationacceleration;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_example_yves_missglndk_MISObject_getcollisionstate(JNIEnv *env, jobject instance, jstring name_)
+{
+    const char *name = env->GetStringUTFChars(name_, 0);
+
+    jboolean collision = getcollisionstate(name);
+
+    env->ReleaseStringUTFChars(name_, name);
+    return collision;
 }
 
 extern "C"
@@ -103,3 +146,13 @@ Java_com_example_yves_missglndk_MISCollision_collision__Ljava_lang_String_2Ljava
     env->ReleaseStringUTFChars(n2_, n2);
 }
 
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_yves_missglndk_MISCollision_constraints(JNIEnv *env, jobject instance,
+                                                         jstring n_) {
+    const char *n = env->GetStringUTFChars(n_, 0);
+
+    constraints(n);
+
+    env->ReleaseStringUTFChars(n_, n);
+}

@@ -67,7 +67,8 @@ public class MainActivity extends AppCompatActivity {
 
 class OpenGLRenderer implements GLSurfaceView.Renderer {
 
-    MyGame scene;
+    //MyGame scene;
+    MyUnitTestScene scene;
     AssetManager asset;
 
     OpenGLRenderer(Context c) {
@@ -81,7 +82,8 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
         try {
-            scene = new MyGame (asset);
+            scene = new MyUnitTestScene (asset);
+//            scene = new MyGame (asset);
         } catch (IOException e) {
             e.printStackTrace();
         }

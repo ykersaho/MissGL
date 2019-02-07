@@ -25,6 +25,7 @@ public class MISCollision {
     MISScene scene;
 
     public native void collision(String n1, String n2);
+    public native void constraints(String n);
 
     boolean collision(float c1[], float r1, float v1[], float c2[], float r2, float v2[]){
         float [] sv1 = new float[3*4];
@@ -366,18 +367,24 @@ public class MISCollision {
     }
 
     void run() {
-        int i,j;
-        for(i=0;i<scene.objects.size()-1;i++){
-            for(j=i+1;j<scene.objects.size();j++){
+        int i, j;
+        for (i = 0; i < scene.objects.size() - 1; i++) {
+            for (j = i + 1; j < scene.objects.size(); j++) {
                 MISObject o1 = scene.objects.get(i);
                 MISObject o2 = scene.objects.get(j);
                 collision(o1.name, o2.name);
-                o1.positionspeed = o1.getpositionspeed(o1.name);
-                o1.rotationspeed = o1.getrotationspeed(o1.name);
-                o1.rotationaxis = o1.getrotationaxis(o1.name);
-                o2.positionspeed = o2.getpositionspeed(o2.name);
-                o2.rotationspeed = o2.getrotationspeed(o2.name);
-                o2.rotationaxis = o2.getrotationaxis(o2.name);
+            }
+        }
+        for (i = 0; i < scene.objects.size(); i++) {
+            MISObject o = scene.objects.get(i);
+            constraints(o.name);
+            if (o.getcollisionstate(o.name)) {
+                o.setcollisionstate(o.getcollisionstate(o.name));
+                o.positionspeed = o.getpositionspeed(o.name);
+                o.rotationspeed = o.getrotationspeed(o.name);
+                o.rotationacceleration = o.getrotationacceleration(o.name);
+                o.rotationaxis = o.getrotationaxis(o.name);
+                o.rotationcenter = o.getrotationcenter(o.name);
             }
         }
     }

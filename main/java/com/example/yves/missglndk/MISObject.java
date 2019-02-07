@@ -280,6 +280,7 @@ public class MISObject {
         rotationaxis[0] = rot[0];
         rotationaxis[1] = rot[1];
         rotationaxis[2] = rot[2];
+        updatematrix();
         t0 = System.nanoTime();
     }
 
@@ -338,7 +339,7 @@ public class MISObject {
         rotationcenter[0] = mvbarycenter[0];
         rotationcenter[1] = mvbarycenter[1];
         rotationcenter[2] = mvbarycenter[2];
-        updatenativeobject(name, mModelMatrix, positionspeed, rotationspeed, rotationaxis);
+        updatenativeobject(name, mModelMatrix, positionspeed, rotationspeed, rotationaxis, rotationcenter);
 
 //        for (int i=0;i<nbtriangle;i++){
 //            Matrix.multiplyMV(mvcenters, i*4, mModelMatrix, 0, centers, i*4);
@@ -404,8 +405,11 @@ public class MISObject {
         glDisableVertexAttribArray(shader.mTexCoordnateHandle);
     }
     public native void addnativeobject(String name, int nbtriangle, float [] barycenter, float bbray, float [] centers, float [] ray, float [] normals, float [] vertices, float m, float elasticity);
-    public native void updatenativeobject(String name, float [] modelmatrix, float [] positionspeed, float rotationspeed, float [] rotationaxis);
+    public native void updatenativeobject(String name, float [] modelmatrix, float [] positionspeed, float rotationspeed, float [] rotationaxis, float [] rotationcenter );
     public native float [] getpositionspeed(String name);
     public native float [] getrotationaxis(String name);
+    public native float [] getrotationcenter(String name);
     public native float  getrotationspeed(String name);
+    public native float  getrotationacceleration(String name);
+    public native boolean  getcollisionstate(String name);
 }

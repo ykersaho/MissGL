@@ -16,20 +16,34 @@ public class MyGame extends MISScene  {
         float [] ballpos = {0.0f, 0.5f, 2.0f};
 
         MyGame (AssetManager assetManager) throws IOException {
-            addobject(new MISObject("ball1", assetManager, "spheresmall.obj", 1.0f / 20.0f, "ball.jpg", 0.0f, 4.5f, 1.0f, 1000.0f, 0.5f));
-            addobject(new MISObject("ground", assetManager, "ground.obj", 10.0f, "tennis.jpg", 0.0f, -2.0f, 0.0f,1000000.0f,0.0f));
-            addobject(new MISObject("button", assetManager, "button.obj", 1.0f/5.0f, "button.png", -0.4f, 0.9f, -1.5f,0.0f,0.0f));
-            addobject(new MISObject("BowlingPins1", assetManager, "BowlingPins.obj", 1.0f / 20.0f, "bowling_pin_TEX.jpg", -1.0f, -1.0f, -2.0f, 200.0f, 0.6f));
-            addobject(new MISObject("BowlingPins2", assetManager, "BowlingPins.obj", 1.0f / 20.0f, "bowling_pin_TEX.jpg", -0.0f, -1.0f, -2.0f, 200.0f, 0.6f));
-            addobject(new MISObject("BowlingPins3", assetManager, "BowlingPins.obj", 1.0f / 20.0f, "bowling_pin_TEX.jpg", 1.0f, -1.0f, -2.0f, 200.0f, 0.6f));
-            addobject(new MISObject("BowlingPins4", assetManager, "BowlingPins.obj", 1.0f / 20.0f, "bowling_pin_TEX.jpg", 0.0f, -1.0f, -1.0f, 200.0f, 0.6f));
+            addobject(new MISObject("ball1", assetManager, "spheresmall.obj", 1.0f / 80.0f, "ball.jpg", 0.0f, 1.5f, 1.0f, 500.0f, 0.6f));
+            addobject(new MISObject("ground", assetManager, "ground.obj", 20.0f, "wood.jpg", 0.0f, -1.0f, 0.0f,1000000.0f,0.0f));
+            addobject(new MISObject("walll", assetManager, "walll.obj", 20.0f, "tennis.jpg", -1.5f, -1.0f, 0.0f,1000000.0f,0.0f));
+            addobject(new MISObject("wallr", assetManager, "wallr.obj", 20.0f, "tennis.jpg", 1.5f, -1.0f, 0.0f,1000000.0f,0.0f));
+            addobject(new MISObject("button", assetManager, "button.obj", 1.0f/5.0f, "button.png", -0.4f, 0.9f, -2.5f,0.0f,0.0f));
+            addobject(new MISObject("BowlingPins0", assetManager, "BowlingPins.obj", 1.0f / 100.0f, "bowling_pin_TEX.jpg", 0.0f, -0.8f, -5.0f, 200.0f, 0.5f));
+            addobject(new MISObject("BowlingPins1", assetManager, "BowlingPins.obj", 1.0f / 100.0f, "bowling_pin_TEX.jpg", -0.15f, -0.8f, -5.30f, 200.0f, 0.5f));
+            addobject(new MISObject("BowlingPins2", assetManager, "BowlingPins.obj", 1.0f / 100.0f, "bowling_pin_TEX.jpg", 0.15f, -0.8f, -5.30f, 200.0f, 0.5f));
+            addobject(new MISObject("BowlingPins3", assetManager, "BowlingPins.obj", 1.0f / 100.0f, "bowling_pin_TEX.jpg", -0.3f, -0.8f, -5.60f, 200.0f, 0.5f));
+            addobject(new MISObject("BowlingPins4", assetManager, "BowlingPins.obj", 1.0f / 100.0f, "bowling_pin_TEX.jpg", 0.0f, -0.8f, -5.6f, 200.0f, 0.5f));
+            addobject(new MISObject("BowlingPins5", assetManager, "BowlingPins.obj", 1.0f / 100.0f, "bowling_pin_TEX.jpg", 0.3f, -0.8f, -5.6f, 200.0f, 0.5f));
+            addobject(new MISObject("BowlingPins6", assetManager, "BowlingPins.obj", 1.0f / 100.0f, "bowling_pin_TEX.jpg", -0.45f, -0.8f, -5.9f, 200.0f, 0.5f));
+            addobject(new MISObject("BowlingPins7", assetManager, "BowlingPins.obj", 1.0f / 100.0f, "bowling_pin_TEX.jpg", -0.15f, -0.8f, -5.9f, 200.0f, 0.5f));
+            addobject(new MISObject("BowlingPins8", assetManager, "BowlingPins.obj", 1.0f / 100.0f, "bowling_pin_TEX.jpg", 0.15f, -0.8f, -5.9f, 200.0f, 0.5f));
+            addobject(new MISObject("BowlingPins9", assetManager, "BowlingPins.obj", 1.0f / 100.0f, "bowling_pin_TEX.jpg", 0.45f, -0.8f, -5.9f, 200.0f, 0.5f));
             addlight(new MISLight(GL_LIGHT0,0.0f, 1.0f, -2.0f));
             addlight(new MISLight(GL_LIGHT1,1.0f, 10.0f, -1.0f));
             getobject("ball1").posacceleration(gravity);
+            getobject("BowlingPins0").posacceleration(gravity);
             getobject("BowlingPins1").posacceleration(gravity);
             getobject("BowlingPins2").posacceleration(gravity);
             getobject("BowlingPins3").posacceleration(gravity);
             getobject("BowlingPins4").posacceleration(gravity);
+            getobject("BowlingPins5").posacceleration(gravity);
+            getobject("BowlingPins6").posacceleration(gravity);
+            getobject("BowlingPins7").posacceleration(gravity);
+            getobject("BowlingPins8").posacceleration(gravity);
+            getobject("BowlingPins9").posacceleration(gravity);
             camera.moveto(campos);
         }
 
@@ -50,8 +64,10 @@ public class MyGame extends MISScene  {
             if(object != null) {
                 activeobject=object;
             }
+            activeobject=getobject("ball1");
             if(activeobject != null) {
                 camera.positionspeed[0] = (activeobject.position[0] - camera.position[0]) * 2.0f;
+                camera.positionspeed[2] = (activeobject.position[2] - (camera.position[2]-2.0f)) * 2.0f;
             }
 
             if(gettouchevent(myth)) { // touch event in the queue
