@@ -91,7 +91,7 @@ public class MISScene {
         int i;
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT | GLES30.GL_DEPTH_BUFFER_BIT);
         Matrix.setIdentityM(mProjectionMatrix, 0);
-        Matrix.frustumM(mProjectionMatrix, 0, -viewratio, viewratio, -1.0f, 1.0f, 2.0f, 20.0f);
+        Matrix.frustumM(mProjectionMatrix, 0, -viewratio, viewratio, -1.0f, 1.0f, 2.0f, 50.0f);
         for (i = 0; i < lights.size(); i++) {
             lights.get(i).move();
         }

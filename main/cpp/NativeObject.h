@@ -17,8 +17,7 @@ void getrotationcenter(const char *n, jfloat *rotationcenter, int size);
 jfloat getrotationspeed(const char *n);
 jfloat getrotationacceleration(const char *n);
 jboolean getcollisionstate(const char *n);
-void collision(const char *n1, const char *n2);
-void constraints(const char *n);
+void collision();
 
 class NativeObject {
 public:

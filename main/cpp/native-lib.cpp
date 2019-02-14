@@ -133,26 +133,8 @@ Java_com_example_yves_missglndk_MISObject_getcollisionstate(JNIEnv *env, jobject
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_yves_missglndk_MISCollision_collision__Ljava_lang_String_2Ljava_lang_String_2(JNIEnv *env,
-                                                                              jobject instance,
-                                                                              jstring n1_,
-                                                                              jstring n2_) {
-    const char *n1 = env->GetStringUTFChars(n1_, 0);
-    const char *n2 = env->GetStringUTFChars(n2_, 0);
+Java_com_example_yves_missglndk_MISCollision_collision__(JNIEnv *env, jobject instance) {
 
-    collision(n1, n2);
+    collision();
 
-    env->ReleaseStringUTFChars(n1_, n1);
-    env->ReleaseStringUTFChars(n2_, n2);
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_example_yves_missglndk_MISCollision_constraints(JNIEnv *env, jobject instance,
-                                                         jstring n_) {
-    const char *n = env->GetStringUTFChars(n_, 0);
-
-    constraints(n);
-
-    env->ReleaseStringUTFChars(n_, n);
 }

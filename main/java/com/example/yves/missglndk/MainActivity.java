@@ -28,6 +28,8 @@ import static android.opengl.GLES20.glViewport;
 
 public class MainActivity extends AppCompatActivity {
     OpenGLRenderer renderer;
+    GLSurfaceView view;
+
     private SensorManager mSensorManager;
 
     static {
@@ -38,14 +40,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mSensorManager = (SensorManager)getSystemService(this.SENSOR_SERVICE);
+        mSensorManager = (SensorManager) getSystemService(this.SENSOR_SERVICE);
         mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                SensorManager.SENSOR_DELAY_NORMAL);    AssetManager assetManager = getAssets();
+                SensorManager.SENSOR_DELAY_NORMAL);
+        AssetManager assetManager = getAssets();
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        GLSurfaceView view = new GLSurfaceView(this);
+        view = new GLSurfaceView(this);
         view.setEGLContextClientVersion(2);
         renderer = new OpenGLRenderer(this);
         view.setRenderer(renderer);
@@ -66,10 +69,9 @@ public class MainActivity extends AppCompatActivity {
 }
 
 class OpenGLRenderer implements GLSurfaceView.Renderer {
-
-    //MyGame scene;
-    MyUnitTestScene scene;
     AssetManager asset;
+    //  MyGame scene;
+    MyUnitTestScene scene;
 
     OpenGLRenderer(Context c) {
         asset = c.getAssets();

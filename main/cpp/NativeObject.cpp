@@ -18,17 +18,17 @@ void getpositionspeed(const char *n, jfloat *positionspeed, int size) {
 
 void getrotationaxis(const char *n, jfloat *rotationaxis, int size) {
     NativeObject *o = hmap[std::string(n)];
-    memcpy(rotationaxis, o->rotationaxis, size);
+    memcpy(rotationaxis, o->newrotationaxis, size);
 }
 
 void getrotationcenter(const char *n, jfloat *rotationcenter, int size) {
     NativeObject *o = hmap[std::string(n)];
-    memcpy(rotationcenter, o->rotationcenter, size);
+    memcpy(rotationcenter, o->newrotationcenter, size);
 }
 
 jfloat getrotationspeed(const char *n) {
     NativeObject *o = hmap[std::string(n)];
-    return(o->rotationspeed);
+    return(o->newrotationspeed);
 }
 
 jfloat getrotationacceleration(const char *n) {
@@ -42,6 +42,8 @@ jboolean getcollisionstate(const char *n) {
 }
 
 void addobject(const char *name, jint nbtriangle, jfloat *barycenter, jfloat bbray, jfloat *centers, jfloat *ray, jfloat *normals, jfloat *vertices, jfloat m, jfloat elasticity) {
+    if(hmap[name] != NULL)
+        return;
     NativeObject *obj = new NativeObject();
     obj->name = name;
     obj->nbtriangle = nbtriangle;
@@ -107,7 +109,7 @@ bool edgetrianglecollision(float *v1, float *v2, float *c, float *n, float *cp) 
     float d2 = (dx2*n[0]+dy2*n[1]+dz2*n[2]);
     if(d1*d2 > 0)
         return(false);
-    if(fabs(d1-d2) < 0.0001)
+    if(fabs(d1-d2) < 0.0000001)
         return(false);
     cp[0] = (v1[0] * d2 - v2[0] * d1) / (d2 - d1);
     cp[1] = (v1[1] * d2 - v2[1] * d1) / (d2 - d1);
@@ -180,7 +182,7 @@ void addimpact(NativeObject *o1,int idi,NativeObject *o2,int idj,float *cc) {
     o1->impacts[o1->nbimpacts].nid = idj;
     o1->impacts[o1->nbimpacts].o = o2;
     o1->nbimpacts++;
-    o2->collision = true;
+    o1->collision = true;
     o2->impacts[o2->nbimpacts].point[0] = cc[0];
     o2->impacts[o2->nbimpacts].point[1] = cc[1];
     o2->impacts[o2->nbimpacts].point[2] = cc[2];
@@ -255,6 +257,7 @@ void edgecollision(NativeObject *o1, int ct1l, int *ct1, NativeObject *o2, int c
 
 void impact(NativeObject *o1, NativeObject *o2, float *n2, float *VOUT, float *RA, float *RS, float *RC, float *ccc) {
         float G[3];
+        float VR[3];
         float V1[3];
         float V2[3];
         float V1X[3];
@@ -263,42 +266,57 @@ void impact(NativeObject *o1, NativeObject *o2, float *n2, float *VOUT, float *R
         float N[3];
         float R[3];
         float VP[3];
-        float lv1,lg,ln,lvp;
+        float VP1[3];
+        float lv1,lg,ln,lvp,lvr;
         memcpy(V1, o1->positionspeed, sizeof(V1));
         memcpy(V2, o2->positionspeed, sizeof(V2));
+        memcpy(RA, o1->rotationaxis, sizeof(o1->rotationaxis));
+        memcpy(RC, o1->rotationcenter, sizeof(o1->rotationcenter));
+        *RS=o1->rotationspeed;
         VOUT[0] = V1[0];
         VOUT[1] = V1[1];
         VOUT[2] = V1[2];
         G[0] = o1->mvbarycenter[0] - ccc[0];
         G[1] = o1->mvbarycenter[1] - ccc[1];
         G[2] = o1->mvbarycenter[2] - ccc[2];
-
         lg=(float) sqrt(G[0]*G[0]+G[1]*G[1]+G[2]*G[2]);
-        G[0] = G[0]/lg;
-        G[1] = G[1]/lg;
-        G[2] = G[2]/lg;
+        if(lg > 0.0000001) {
+            G[0] = G[0]/lg;
+            G[1] = G[1]/lg;
+            G[2] = G[2]/lg;
+        }
         ln=(float) sqrt(n2[0]*n2[0]+n2[1]*n2[1]+n2[2]*n2[2]);
-        N[0] = n2[0]/ln;
-        N[1] = n2[1]/ln;
-        N[2] = n2[2]/ln;
+        if(ln > 0.0000001) {
+            N[0] = n2[0] / ln;
+            N[1] = n2[1] / ln;
+            N[2] = n2[2] / ln;
+        }
+        float vg = (V1[0]*G[0]+V1[1]*G[1]+V1[2]*G[2]);
+        VP[0] = G[1]*V1[2]-G[2]*V1[1];
+        VP[1] = G[2]*V1[0]-G[0]*V1[2];
+        VP[2] = G[0]*V1[1]-G[1]*V1[0];
+        VR[0] = V1[0] - vg*G[0];
+        VR[1] = V1[1] - vg*G[1];
+        VR[2] = V1[2] - vg*G[2];
+        lvp=(float) sqrt(VP[0]*VP[0]+VP[1]*VP[1]+VP[2]*VP[2]);
+        lvr=(float) sqrt(VR[0]*VR[0]+VR[1]*VR[1]+VR[2]*VR[2]);
+        if(lvp > 0.0000001f) {
+            VP[0] = VP[0]/lvp;
+            VP[1] = VP[1]/lvp;
+            VP[2] = VP[2]/lvp;
+            *RS = (lvr / lg) * (180.0f / 3.1416926f);
+            memcpy(RA, VP, sizeof(o1->rotationaxis));
+            memcpy(RC, ccc, sizeof(o1->rotationcenter));
+        } else {
+            *RS = 0.0f;
+        }
         float s1 = (V1[0]*N[0]+V1[1]*N[1]+V1[2]*N[2]);
         float s2 = (V2[0]*N[0]+V2[1]*N[1]+V2[2]*N[2]);
-        VP[0] = G[1]*(V1[2] - V2[2])-G[2]*(V1[1]-V2[1]);
-        VP[1] = G[2]*(V1[0] - V2[0])-G[0]*(V1[2]-V2[2]);
-        VP[2] = G[0]*(V1[1] - V2[1])-G[1]*(V1[0]-V2[0]);
-        lvp=(float) sqrt(VP[0]*VP[0]+VP[1]*VP[1]+VP[2]*VP[2]);
-        VP[0] = VP[0]/lvp;
-        VP[1] = VP[1]/lvp;
-        VP[2] = VP[2]/lvp;
         float e1 = (o1->m - o2->m)  / (o1->m + o2->m);
         float e2 = 2 * o2->m / (o1->m + o2->m);
         if(o1->m < 1000000) {
-            if (lvp != 0.0f)
-                memcpy(RA, VP, sizeof(o1->rotationaxis));
-            *RS = (lvp / lg) * (180.0f / 3.1416926f);
-            memcpy(RC, ccc, sizeof(o1->rotationcenter));
-            float f = e1 * s1 + e2 * s2;
             if(s1 <= s2) {
+                float f = e1 * s1 + e2 * s2;
                 V1X[0] = f * N[0] * o1->elasticity;
                 V1X[1] = f * N[1] * o1->elasticity;
                 V1X[2] = f * N[2] * o1->elasticity;
@@ -317,9 +335,88 @@ void impact(NativeObject *o1, NativeObject *o2, float *n2, float *VOUT, float *R
         }
 }
 
-void collision(const char *n1, const char *n2) {
-    NativeObject *o1 = hmap[std::string(n1)];
-    NativeObject *o2 = hmap[std::string(n2)];
+void constraints(NativeObject *o1, NativeObject *o2) {
+    int i,j;
+    float *N;
+    float r[3];
+    float vp[3];
+    float VO[3];
+    float PS[3];
+    float RA[3];
+    float RS;
+    float RC[3];
+    float SRA[3];
+    float SRS;
+    float SRC[3];
+    float s;
+    int nid;
+    int nbr=0;
+    bool constraint;
+
+    PS[0]=PS[1]=PS[2]=0.0f;
+    SRA[0]=SRA[1]=SRA[2]=0.0f;
+    SRC[0]=SRC[1]=SRC[2]=0.0f;
+    SRS=0.0f;
+
+    for (i = 0; i < o1->nbimpacts; i++) {
+        if(o1->impacts[i].o == o2) {
+            nid = o1->impacts[i].nid;
+            impact(o1, o1->impacts[i].o, &o2->mvnormals[4 * nid], VO, RA, &RS, RC,
+                   o1->impacts[i].point);
+            // verify rotation constraints
+            constraint = false;
+            for (j = 0; j < o1->nbimpacts; j++) {
+                r[0] = o1->impacts[j].point[0] - RC[0];
+                r[1] = o1->impacts[j].point[1] - RC[1];
+                r[2] = o1->impacts[j].point[2] - RC[2];
+                vp[0] = r[1]*RA[2]-r[2]*RA[1];
+                vp[1] = r[2]*RA[0]-r[0]*RA[2];
+                vp[2] = r[0]*RA[1]-r[1]*RA[0];
+                nid = o1->impacts[j].nid;
+                N = &o1->impacts[j].o->mvnormals[4 * nid];
+                s = vp[0]* N[0] + vp[1]* N[1] + vp[2]* N[2];
+                if(s > 0) {
+                    constraint = true;
+                    break;
+                }
+            }
+            if(!constraint) {
+                SRA[0] += RA[0];
+                SRA[1] += RA[1];
+                SRA[2] += RA[2];
+                SRC[0] += RC[0];
+                SRC[1] += RC[1];
+                SRC[2] += RC[2];
+                SRS += RS;
+                nbr++;
+            }
+            PS[0] += VO[0];
+            PS[1] += VO[1];
+            PS[2] += VO[2];
+        }
+    }
+    o1->newpositionspeed[0] += PS[0] / o1->nbimpacts;
+    o1->newpositionspeed[1] += PS[1] / o1->nbimpacts;
+    o1->newpositionspeed[2] += PS[2] / o1->nbimpacts;
+
+    if(nbr) {
+        o1->newrotationaxis[0] += SRA[0]/nbr;
+        o1->newrotationaxis[1] += SRA[1]/nbr;
+        o1->newrotationaxis[2] += SRA[2]/nbr;
+        o1->newrotationcenter[0] += SRC[0]/nbr;
+        o1->newrotationcenter[1] += SRC[1]/nbr;
+        o1->newrotationcenter[2] += SRC[2]/nbr;
+        o1->newrotationspeed += SRS/nbr;
+    }
+    else {
+        o1->newrotationaxis[0] = 1.0f;
+        o1->newrotationaxis[1] = 0.0f;
+        o1->newrotationaxis[2] = 0.0f;
+        o1->newrotationspeed = 0.0f;
+    }
+}
+
+void collision(NativeObject *o1, NativeObject *o2) {
     float zero[] = {0.0f, 0.0f, 0.0f};
     int i;
 
@@ -379,97 +476,57 @@ void collision(const char *n1, const char *n2) {
     edgecollision(o1, ct1l, ct1, o2, ct2l, ct2);
 }
 
-void constraints(const char *n) {
-    int i,j;
-    NativeObject *o = hmap[std::string(n)];
-    float *V1 = o->positionspeed;
-    float r[3];
-    float vp[3];
-    float VO[3];
-    float VS[3];
-    float PS[3];
-    float RA[3];
-    float RS;
-    float RC[3];
-    float SRA[3];
-    float SRS;
-    float SRC[3];
-    int nid;
-    int nbi=0;
+void collision() {
+    NativeObject *o1;
+    NativeObject *o2;
+    int i,j,k;
 
-    o->newpositionspeed[0] = o->positionspeed[0];
-    o->newpositionspeed[1] = o->positionspeed[1];
-    o->newpositionspeed[2] = o->positionspeed[2];
-    if((o->nbimpacts == 0) || (o->m ==0) | (o->m >= 1000000)) {
-        o->collision=false;
-        return;
-    }
-    o->collision=true;
-
-    PS[0]=PS[1]=PS[2]=0.0f;
-    SRA[1]=SRA[2]=0.0f;
-    SRA[0]=1.0f;
-    SRC[0]=SRC[1]=SRC[2]=0.0f;
-    SRS=0.0f;
-
-    for (i = 0; i < o->nbimpacts; i++) {
-        nid = o->impacts[i].nid;
-        impact(o, o->impacts[i].o, &o->impacts[i].o->mvnormals[4 * nid], VO, RA, &RS, RC,
-               o->impacts[i].point);
-        VS[0] = VO[0];
-        VS[1] = VO[1];
-        VS[2] = VO[2];
-        int constraint = 0;
-        for (j = 0; j < o->nbimpacts; j++) {
-            if(i == j) continue;
-            nid = o->impacts[j].nid;
-            float *N = &o->impacts[j].o->mvnormals[4 * nid];
-            float s = (VS[0] * N[0] + VS[1] * N[1] + VS[2] * N[2]);
-            if (s < 0.0) {
-                VS[0] -= s * N[0];
-                VS[1] -= s * N[1];
-                VS[2] -= s * N[2];
-            }
-
-            r[0] = o->impacts[j].point[0] - o->mvbarycenter[0];
-            r[1] = o->impacts[j].point[1] - o->mvbarycenter[1];
-            r[2] = o->impacts[j].point[2] - o->mvbarycenter[2];
-            vp[0] = N[1] * r[2] - N[2] * r[1];
-            vp[1] = N[2] * r[0] - N[0] * r[2];
-            vp[2] = N[0] * r[1] - N[1] * r[0];
-            s = vp[0] * RA[0] + vp[1] * RA[1] + vp[2] * RA[2];
-            if (s < 0.0) {
-                constraint = 1;
+    // first generate all impacts
+    for (i=0;i<objects.size();i++) {
+        o1 = objects[i];
+        for (j = 0; j < objects.size(); j++) {
+            o2 = objects[j];
+            if (o1 != o2) {
+                collision(o1, o2);
             }
         }
-//        if (!constraint) {
-            SRA[0] += RA[0];
-            SRA[1] += RA[1];
-            SRA[2] += RA[2];
-            SRC[0] += RC[0];
-            SRC[1] += RC[1];
-            SRC[2] += RC[2];
-            SRS += RS;
-            nbi++;
-//        }
-        PS[0] += VS[0];
-        PS[1] += VS[1];
-        PS[2] += VS[2];
     }
-    o->newpositionspeed[0] = PS[0] / o->nbimpacts;
-    o->newpositionspeed[1] = PS[1] / o->nbimpacts;
-    o->newpositionspeed[2] = PS[2] / o->nbimpacts;
-    if(nbi) {
-        o->rotationaxis[0] = SRA[0]/nbi;
-        o->rotationaxis[1] = SRA[1]/nbi;
-        o->rotationaxis[2] = SRA[2]/nbi;
-        o->rotationcenter[0] = SRC[0]/nbi;
-        o->rotationcenter[1] = SRC[1]/nbi;
-        o->rotationcenter[2] = SRC[2]/nbi;
-        o->rotationspeed = SRS/nbi;
+
+    // then compute pair collision
+    for (i=0;i<objects.size();i++) {
+        o1 = objects[i];
+        // ignore if static objects or no collision
+        if((o1->m==0) || (o1->m >=1000000) || (o1->collision == false)) {
+            o1->collision = false;
+            o1->newpositionspeed[0] = o1->positionspeed[0];
+            o1->newpositionspeed[1] = o1->positionspeed[1];
+            o1->newpositionspeed[2] = o1->positionspeed[2];
+            o1->newrotationaxis[0] = o1->rotationaxis[0];
+            o1->newrotationaxis[1] = o1->rotationaxis[1];
+            o1->newrotationaxis[2] = o1->rotationaxis[2];
+            o1->newrotationcenter[0] = o1->rotationcenter[0];
+            o1->newrotationcenter[1] = o1->rotationcenter[1];
+            o1->newrotationcenter[2] = o1->rotationcenter[2];
+            o1->newrotationspeed = o1->rotationspeed;
+            continue;
+        }
+        o1->newpositionspeed[0] = 0.0f;
+        o1->newpositionspeed[1] = 0.0f;
+        o1->newpositionspeed[2] = 0.0f;
+        o1->newrotationaxis[0] = 0.0f;
+        o1->newrotationaxis[1] = 0.0f;
+        o1->newrotationaxis[2] = 0.0f;
+        o1->newrotationcenter[0] = 0.0f;
+        o1->newrotationcenter[1] = 0.0f;
+        o1->newrotationcenter[2] = 0.0f;
+        o1->newrotationspeed = 0.0f;
+        for (j=0;j<objects.size();j++) {
+            o2 = objects[j];
+            if(o1 != o2) {
+                constraints(o1,o2);
+            }
+        }
     }
-    else
-        o->rotationspeed = 0;
 }
 
 NativeObject::NativeObject() {
