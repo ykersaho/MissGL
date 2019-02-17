@@ -314,6 +314,7 @@ void impact(NativeObject *o1, NativeObject *o2, float *n2, float *VOUT, float *R
         float s2 = (V2[0]*N[0]+V2[1]*N[1]+V2[2]*N[2]);
         float e1 = (o1->m - o2->m)  / (o1->m + o2->m);
         float e2 = 2 * o2->m / (o1->m + o2->m);
+
         if(o1->m < 1000000) {
             if(s1 <= s2) {
                 float f = e1 * s1 + e2 * s2;
@@ -349,70 +350,84 @@ void constraints(NativeObject *o1, NativeObject *o2) {
     float SRS;
     float SRC[3];
     float s;
+    int nbi;
     int nid;
-    int nbr=0;
-    bool constraint;
 
     PS[0]=PS[1]=PS[2]=0.0f;
     SRA[0]=SRA[1]=SRA[2]=0.0f;
     SRC[0]=SRC[1]=SRC[2]=0.0f;
     SRS=0.0f;
+    nbi=0;
 
     for (i = 0; i < o1->nbimpacts; i++) {
         if(o1->impacts[i].o == o2) {
+            nbi++;
             nid = o1->impacts[i].nid;
             impact(o1, o1->impacts[i].o, &o2->mvnormals[4 * nid], VO, RA, &RS, RC,
                    o1->impacts[i].point);
-            // verify rotation constraints
-            constraint = false;
             for (j = 0; j < o1->nbimpacts; j++) {
-                r[0] = o1->impacts[j].point[0] - RC[0];
-                r[1] = o1->impacts[j].point[1] - RC[1];
-                r[2] = o1->impacts[j].point[2] - RC[2];
-                vp[0] = r[1]*RA[2]-r[2]*RA[1];
-                vp[1] = r[2]*RA[0]-r[0]*RA[2];
-                vp[2] = r[0]*RA[1]-r[1]*RA[0];
-                nid = o1->impacts[j].nid;
-                N = &o1->impacts[j].o->mvnormals[4 * nid];
-                s = vp[0]* N[0] + vp[1]* N[1] + vp[2]* N[2];
-                if(s > 0) {
-                    constraint = true;
-                    break;
+                    if (i != j) {
+                        // verify rotation constraints
+                        float lr;
+                        r[0] = o1->impacts[j].point[0] - RC[0];
+                        r[1] = o1->impacts[j].point[1] - RC[1];
+                        r[2] = o1->impacts[j].point[2] - RC[2];
+                        lr=(float) sqrt(r[0]*r[0]+r[1]*r[1]+r[2]*r[2]);
+                        nid = o1->impacts[j].nid;
+                        N = &o1->impacts[j].o->mvnormals[4 * nid];
+                        if(N[1] == -1.0f)
+                            lr = 1.0f * lr;
+                        // no constraint if points are too close
+                        if(lr > 0.0001) {
+                            vp[0] = r[1] * RA[2] - r[2] * RA[1];
+                            vp[1] = r[2] * RA[0] - r[0] * RA[2];
+                            vp[2] = r[0] * RA[1] - r[1] * RA[0];
+                            s = vp[0] * N[0] + vp[1] * N[1] + vp[2] * N[2];
+                            if (s > 0) {
+                                // remove constraint
+                                r[0] /= lr;
+                                r[1] /= lr;
+                                r[2] /= lr;
+                                s = RA[0] * r[0] + RA[1]*r[1] + RA[2]*r[2];
+                                RA[0] = s * r[0];
+                                RA[1] = s * r[1];
+                                RA[2] = s * r[2];
+                            }
+                        }
+                        // verify transalation constraints
+                        s = VO[0]*N[0] + VO[1]*N[1] + VO[1]*N[1];
+                        if( s < 0.0f) {
+                            VO[0] = VO[0] - s * N[0];
+                            VO[1] = VO[1] - s * N[1];
+                            VO[2] = VO[2] - s * N[2];
+                        }
+                    }
                 }
-            }
-            if(!constraint) {
-                SRA[0] += RA[0];
-                SRA[1] += RA[1];
-                SRA[2] += RA[2];
-                SRC[0] += RC[0];
-                SRC[1] += RC[1];
-                SRC[2] += RC[2];
-                SRS += RS;
-                nbr++;
-            }
+            SRA[0] += RA[0];
+            SRA[1] += RA[1];
+            SRA[2] += RA[2];
+            SRC[0] += RC[0];
+            SRC[1] += RC[1];
+            SRC[2] += RC[2];
+            SRS += RS;
             PS[0] += VO[0];
             PS[1] += VO[1];
             PS[2] += VO[2];
+            }
         }
-    }
-    o1->newpositionspeed[0] += PS[0] / o1->nbimpacts;
-    o1->newpositionspeed[1] += PS[1] / o1->nbimpacts;
-    o1->newpositionspeed[2] += PS[2] / o1->nbimpacts;
+    if(nbi) {
+        o1->newpositionspeed[0] += PS[0] / nbi;
+        o1->newpositionspeed[1] += PS[1] / nbi;
+        o1->newpositionspeed[2] += PS[2] / nbi;
 
-    if(nbr) {
-        o1->newrotationaxis[0] += SRA[0]/nbr;
-        o1->newrotationaxis[1] += SRA[1]/nbr;
-        o1->newrotationaxis[2] += SRA[2]/nbr;
-        o1->newrotationcenter[0] += SRC[0]/nbr;
-        o1->newrotationcenter[1] += SRC[1]/nbr;
-        o1->newrotationcenter[2] += SRC[2]/nbr;
-        o1->newrotationspeed += SRS/nbr;
-    }
-    else {
-        o1->newrotationaxis[0] = 1.0f;
-        o1->newrotationaxis[1] = 0.0f;
-        o1->newrotationaxis[2] = 0.0f;
-        o1->newrotationspeed = 0.0f;
+        o1->newrotationaxis[0] += SRA[0] / nbi;
+        o1->newrotationaxis[1] += SRA[1] / nbi;
+        o1->newrotationaxis[2] += SRA[2] / nbi;
+        o1->newrotationcenter[0] += SRC[0] / nbi;
+        o1->newrotationcenter[1] += SRC[1] / nbi;
+        o1->newrotationcenter[2] += SRC[2] / nbi;
+        o1->newrotationspeed += SRS / nbi;
+        o1->nbcollisions++;
     }
 }
 
@@ -520,11 +535,29 @@ void collision() {
         o1->newrotationcenter[1] = 0.0f;
         o1->newrotationcenter[2] = 0.0f;
         o1->newrotationspeed = 0.0f;
+        o1->nbcollisions = 0;
         for (j=0;j<objects.size();j++) {
             o2 = objects[j];
             if(o1 != o2) {
                 constraints(o1,o2);
             }
+        }
+        if(o1->nbcollisions) {
+            o1->newpositionspeed[0] /= o1->nbcollisions;
+            o1->newpositionspeed[1] /= o1->nbcollisions;
+            o1->newpositionspeed[2] /= o1->nbcollisions;
+            o1->newrotationaxis[0] /= o1->nbcollisions;
+            o1->newrotationaxis[1] /= o1->nbcollisions;
+            o1->newrotationaxis[2] /= o1->nbcollisions;
+            o1->newrotationcenter[0] /= o1->nbcollisions;
+            o1->newrotationcenter[1] /= o1->nbcollisions;
+            o1->newrotationcenter[2] /= o1->nbcollisions;
+            o1->newrotationspeed /= o1->nbcollisions;
+        }
+        if(o1->newrotationspeed == 0.0f) {
+            o1->newrotationaxis[0] = 1.0f;
+            o1->newrotationaxis[1] = 0.0f;
+            o1->newrotationaxis[2] = 0.0f;
         }
     }
 }

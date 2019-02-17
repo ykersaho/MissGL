@@ -47,6 +47,7 @@ public:
     jfloat *mvvertices;
     impact *impacts;
     jint nbimpacts;
+    jint nbcollisions;
     jfloat modelmatrix[16];
     jfloat positionspeed[3];
     jfloat newpositionspeed[3];
