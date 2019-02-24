@@ -173,7 +173,7 @@ void addimpact(NativeObject *o1,int idi,NativeObject *o2,int idj,float *cc) {
         float dx= cc[0] - o1->impacts[i].point[0];
         float dy= cc[1] - o1->impacts[i].point[1];
         float dz= cc[2] - o1->impacts[i].point[2];
-        if(dx*dx+dy*dy+dz*dz < 0.0000001)
+        if(dx*dx+dy*dy+dz*dz < 0.0001)
             return;
     }
     o1->impacts[o1->nbimpacts].point[0] = cc[0];
@@ -262,20 +262,36 @@ void impact(NativeObject *o1, NativeObject *o2, float *n2, float *VOUT, float *R
         float V2[3];
         float V1X[3];
         float V1Y[3];
-        float V2Y[3];
         float N[3];
-        float R[3];
         float VP[3];
         float VP1[3];
-        float lv1,lg,ln,lvp,lvr;
+        float lv1,lg,ln,lvp;
         memcpy(V1, o1->positionspeed, sizeof(V1));
         memcpy(V2, o2->positionspeed, sizeof(V2));
         memcpy(RA, o1->rotationaxis, sizeof(o1->rotationaxis));
+        if(o1->rotationspeed == 0.0f){
+            RA[0] = 0.0f;
+            RA[1] = 0.0f;
+            RA[2] = 0.0f;
+        }
         memcpy(RC, o1->rotationcenter, sizeof(o1->rotationcenter));
         *RS=o1->rotationspeed;
         VOUT[0] = V1[0];
         VOUT[1] = V1[1];
         VOUT[2] = V1[2];
+
+        float s1 = (V1[0]*N[0]+V1[1]*N[1]+V1[2]*N[2]);
+        float s2 = (V2[0]*N[0]+V2[1]*N[1]+V2[2]*N[2]);
+        float e1 = (o1->m - o2->m)  / (o1->m + o2->m);
+        float e2 = 2 * o2->m / (o1->m + o2->m);
+
+        V1X[0] = s1 * N[0];
+        V1X[1] = s1 * N[1];
+        V1X[2] = s1 * N[2];
+        V1Y[0] = V1[0] - s1 * N[0];
+        V1Y[1] = V1[1] - s1 * N[1];
+        V1Y[2] = V1[2] - s1 * N[2];
+
         G[0] = o1->mvbarycenter[0] - ccc[0];
         G[1] = o1->mvbarycenter[1] - ccc[1];
         G[2] = o1->mvbarycenter[2] - ccc[2];
@@ -291,29 +307,18 @@ void impact(NativeObject *o1, NativeObject *o2, float *n2, float *VOUT, float *R
             N[1] = n2[1] / ln;
             N[2] = n2[2] / ln;
         }
-        float vg = (V1[0]*G[0]+V1[1]*G[1]+V1[2]*G[2]);
-        VP[0] = G[1]*V1[2]-G[2]*V1[1];
-        VP[1] = G[2]*V1[0]-G[0]*V1[2];
-        VP[2] = G[0]*V1[1]-G[1]*V1[0];
-        VR[0] = V1[0] - vg*G[0];
-        VR[1] = V1[1] - vg*G[1];
-        VR[2] = V1[2] - vg*G[2];
+        VR[0] = V1X[0] + 0.2f*V1Y[0];
+        VR[1] = V1X[1] + 0.2f*V1Y[1];
+        VR[2] = V1X[2] + 0.2f*V1Y[2];
+        float vg = (VR[0]*G[0]+VR[1]*G[1]+VR[2]*G[2]);
+        VR[0] = VR[0] - vg*G[0];
+        VR[1] = VR[1] - vg*G[1];
+        VR[2] = VR[2] - vg*G[2];
+
+        VP[0] = G[1]*VR[2]-G[2]*VR[1];
+        VP[1] = G[2]*VR[0]-G[0]*VR[2];
+        VP[2] = G[0]*VR[1]-G[1]*VR[0];
         lvp=(float) sqrt(VP[0]*VP[0]+VP[1]*VP[1]+VP[2]*VP[2]);
-        lvr=(float) sqrt(VR[0]*VR[0]+VR[1]*VR[1]+VR[2]*VR[2]);
-        if(lvp > 0.0000001f) {
-            VP[0] = VP[0]/lvp;
-            VP[1] = VP[1]/lvp;
-            VP[2] = VP[2]/lvp;
-            *RS = (lvr / lg) * (180.0f / 3.1416926f);
-            memcpy(RA, VP, sizeof(o1->rotationaxis));
-            memcpy(RC, ccc, sizeof(o1->rotationcenter));
-        } else {
-            *RS = 0.0f;
-        }
-        float s1 = (V1[0]*N[0]+V1[1]*N[1]+V1[2]*N[2]);
-        float s2 = (V2[0]*N[0]+V2[1]*N[1]+V2[2]*N[2]);
-        float e1 = (o1->m - o2->m)  / (o1->m + o2->m);
-        float e2 = 2 * o2->m / (o1->m + o2->m);
 
         if(o1->m < 1000000) {
             if(s1 <= s2) {
@@ -321,15 +326,25 @@ void impact(NativeObject *o1, NativeObject *o2, float *n2, float *VOUT, float *R
                 V1X[0] = f * N[0] * o1->elasticity;
                 V1X[1] = f * N[1] * o1->elasticity;
                 V1X[2] = f * N[2] * o1->elasticity;
+                if(lvp > 0.0000001f) {
+                    VP[0] = VP[0]/lg;
+                    VP[1] = VP[1]/lg;
+                    VP[2] = VP[2]/lg;
+                    RA[0] += VP[0];
+                    RA[1] += VP[1];
+                    RA[2] += VP[2];
+//            memcpy(RA, VP, sizeof(o1->rotationaxis));
+                    memcpy(RC, ccc, sizeof(o1->rotationcenter));
+                }
             }
             else {
                 V1X[0] = s1 * N[0];
                 V1X[1] = s1 * N[1];
                 V1X[2] = s1 * N[2];
             }
-            V1Y[0] = (V1[0] - s1 * N[0]) * 0.99f;
-            V1Y[1] = (V1[1] - s1 * N[1]) * 0.99f;
-            V1Y[2] = (V1[2] - s1 * N[2]) * 0.99f;
+            V1Y[0] = (V1[0] - s1 * N[0]) * 0.999f;
+            V1Y[1] = (V1[1] - s1 * N[1]) * 0.999f;
+            V1Y[2] = (V1[2] - s1 * N[2]) * 0.999f;
             VOUT[0] = V1X[0] + V1Y[0];
             VOUT[1] = V1X[1] + V1Y[1];
             VOUT[2] = V1X[2] + V1Y[2];
@@ -350,6 +365,7 @@ void constraints(NativeObject *o1, NativeObject *o2) {
     float SRS;
     float SRC[3];
     float s;
+    float maxlr;
     int nbi;
     int nid;
 
@@ -365,6 +381,7 @@ void constraints(NativeObject *o1, NativeObject *o2) {
             nid = o1->impacts[i].nid;
             impact(o1, o1->impacts[i].o, &o2->mvnormals[4 * nid], VO, RA, &RS, RC,
                    o1->impacts[i].point);
+            maxlr=0;
             for (j = 0; j < o1->nbimpacts; j++) {
                     if (i != j) {
                         // verify rotation constraints
@@ -375,8 +392,6 @@ void constraints(NativeObject *o1, NativeObject *o2) {
                         lr=(float) sqrt(r[0]*r[0]+r[1]*r[1]+r[2]*r[2]);
                         nid = o1->impacts[j].nid;
                         N = &o1->impacts[j].o->mvnormals[4 * nid];
-                        if(N[1] == -1.0f)
-                            lr = 1.0f * lr;
                         // no constraint if points are too close
                         if(lr > 0.0001) {
                             vp[0] = r[1] * RA[2] - r[2] * RA[1];
@@ -384,19 +399,25 @@ void constraints(NativeObject *o1, NativeObject *o2) {
                             vp[2] = r[0] * RA[1] - r[1] * RA[0];
                             s = vp[0] * N[0] + vp[1] * N[1] + vp[2] * N[2];
                             if (s > 0) {
-                                // remove constraint
-                                r[0] /= lr;
-                                r[1] /= lr;
-                                r[2] /= lr;
-                                s = RA[0] * r[0] + RA[1]*r[1] + RA[2]*r[2];
-                                RA[0] = s * r[0];
-                                RA[1] = s * r[1];
-                                RA[2] = s * r[2];
+//                                if(lr > maxlr){
+                                    maxlr = lr;
+                                    // remove constraint
+                                    r[0] /= lr;
+                                    r[1] /= lr;
+                                    r[2] /= lr;
+                                    s = RA[0] * r[0] + RA[1]*r[1] + RA[2]*r[2];
+                                    RA[0] = s * r[0];
+                                    RA[1] = s * r[1];
+                                    RA[2] = s * r[2];
+                                    RC[0] = o1->impacts[j].point[0];
+                                    RC[1] = o1->impacts[j].point[1];
+                                    RC[2] = o1->impacts[j].point[2];
+ //                               }
                             }
                         }
-                        // verify transalation constraints
+                        // verify translation constraints
                         s = VO[0]*N[0] + VO[1]*N[1] + VO[1]*N[1];
-                        if( s < 0.0f) {
+                        if((s < 0.0f) && (o1->impacts[j].o->m >= o1->m))  {
                             VO[0] = VO[0] - s * N[0];
                             VO[1] = VO[1] - s * N[1];
                             VO[2] = VO[2] - s * N[2];
@@ -419,7 +440,6 @@ void constraints(NativeObject *o1, NativeObject *o2) {
         o1->newpositionspeed[0] += PS[0] / nbi;
         o1->newpositionspeed[1] += PS[1] / nbi;
         o1->newpositionspeed[2] += PS[2] / nbi;
-
         o1->newrotationaxis[0] += SRA[0] / nbi;
         o1->newrotationaxis[1] += SRA[1] / nbi;
         o1->newrotationaxis[2] += SRA[2] / nbi;
@@ -542,7 +562,7 @@ void collision() {
                 constraints(o1,o2);
             }
         }
-        if(o1->nbcollisions) {
+        if(o1->nbcollisions){
             o1->newpositionspeed[0] /= o1->nbcollisions;
             o1->newpositionspeed[1] /= o1->nbcollisions;
             o1->newpositionspeed[2] /= o1->nbcollisions;
@@ -554,10 +574,13 @@ void collision() {
             o1->newrotationcenter[2] /= o1->nbcollisions;
             o1->newrotationspeed /= o1->nbcollisions;
         }
-        if(o1->newrotationspeed == 0.0f) {
+        float ra = (float) sqrt(o1->newrotationaxis[0]*o1->newrotationaxis[0]+o1->newrotationaxis[1]*o1->newrotationaxis[1]+o1->newrotationaxis[2]*o1->newrotationaxis[2]);
+        o1->newrotationspeed = ra * 180.0f / 3.1415926f;
+        if(ra < 0.001f){
             o1->newrotationaxis[0] = 1.0f;
             o1->newrotationaxis[1] = 0.0f;
             o1->newrotationaxis[2] = 0.0f;
+            o1->newrotationspeed = 0.0f;
         }
     }
 }
