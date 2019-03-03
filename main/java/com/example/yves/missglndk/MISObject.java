@@ -314,8 +314,8 @@ public class MISObject {
         long t1 = System.nanoTime();
         long ldt = t1 - t0;
         float dt;
-//        if (ldt > 20000000)
- //           ldt = 20000000;   // CPU is too slow no real time
+        if (ldt > 20000000)
+            ldt = 20000000;   // CPU is too slow no real time
         t0 = t1;
         dt = (float) ((double) ldt / 1000000000.0);
         Matrix.setIdentityM(mMotionMatrix, 0);

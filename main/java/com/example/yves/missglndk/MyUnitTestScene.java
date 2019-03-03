@@ -14,21 +14,22 @@ import static android.opengl.GLES10.GL_LIGHT1;
 
 public class MyUnitTestScene extends MISScene {
     float [] gravity= {0.0f, -9.0f, 0.0f};
+    float [] raxis= {0f, 60.0f, 0.0f};
     float [] speed= {10f, 0.0f, 0.0f};
-    float [] speed1= {0.0f, 0.0f, -25.0f};
+    float [] speed1= {0.0f, 0.0f, -16.0f};
     float [] speed2= {10.0f, 0.0f, 0.0f};
     float [] campos = {0.0f, 0.0f, 10.0f};
     float [] rot = {1.0f, 0.0f, 1.0f};
 
     MyUnitTestScene(AssetManager assetManager) throws IOException {
-        test5(assetManager);
+        test1(assetManager);
     }
 
     public void test1(AssetManager assetManager) throws IOException {
         addobject(new MISObject("ground", assetManager, "ground.obj", 100.0f, "tennis.jpg", 0.0f, -1.0f, -5.0f,1000000.0f,0.0f));
-        addobject(new MISObject("ball1", assetManager, "spheresmall.obj", 1.0f / 5.0f, "ball.jpg", 0.0f, 2.0f, 10.0f, 2000.0f, 0.3f));
+        addobject(new MISObject("ball1", assetManager, "spheresmall.obj", 1.0f / 2.0f, "ball.jpg", 0.0f, 4.0f, 10.0f, 2000.0f, 0.3f));
         getobject("ball1").posacceleration(gravity);
-        getobject("ball1").posspeed(speed1);
+        getobject("ball1").posspeed(speed);
         camera.moveto(campos);
     }
 
@@ -67,28 +68,53 @@ public class MyUnitTestScene extends MISScene {
         camera.moveto(campos);
     }
 
-
     public void test5(AssetManager assetManager) throws IOException {
+        addobject(new MISObject("ball1", assetManager, "spheresmall.obj", 1.0f / 8.0f, "ball.jpg", -5f, 0.0f, 0.0f, 4000.0f, 0.2f));
+        addobject(new MISObject("ball2", assetManager, "spheresmall.obj", 1.0f / 8.0f, "ball.jpg", 5f, 0.0f, 0.0f, 4000.0f, 0.8f));
+        addlight(new MISLight(GL_LIGHT0,0.0f, 1.0f, -2.0f));
+        addlight(new MISLight(GL_LIGHT1,1.0f, 10.0f, -1.0f));
+        getobject("ball1").posspeed(speed);
+        camera.moveto(campos);
+    }
+
+    public void test6(AssetManager assetManager) throws IOException {
         addobject(new MISObject("ground", assetManager, "ground.obj", 100.0f, "tennis.jpg", 0.0f, -1.0f, -5.0f,1000000.0f,0.0f));
-        addobject(new MISObject("ball1", assetManager, "spheresmall.obj", 1.0f / 4.0f, "ball.jpg", -0.0f, 2.0f, 10.0f, 2000.0f, 0.4f));
-        addobject(new MISObject("BowlingPins0", assetManager, "BowlingPins.obj", 1.0f / 5.0f, "bowling_pin_TEX.jpg", 0.0f, 3.0f, -5.0f, 1000f, 0.4f));
-        addobject(new MISObject("BowlingPins1", assetManager, "BowlingPins.obj", 1.0f / 5.0f, "bowling_pin_TEX.jpg", 3.0f, 3.0f, -5.0f, 1000f, 0.4f));
-        addobject(new MISObject("BowlingPins2", assetManager, "BowlingPins.obj", 1.0f / 5.0f, "bowling_pin_TEX.jpg", 1.5f, 3.0f, -8.0f, 1000f, 0.4f));
+        addobject(new MISObject("ball1", assetManager, "spheresmall.obj", 1.0f / 8.0f, "ball.jpg", 1.5f, 2.0f, 15.0f, 4000.0f, 0.2f));
+        addobject(new MISObject("BowlingPins0", assetManager, "BowlingPins.obj", 1.0f / 10.0f, "bowling_pin_TEX.jpg", 0.0f, 1.0f, -5.0f, 1000f, 0.6f));
+        addobject(new MISObject("BowlingPins1", assetManager, "BowlingPins.obj", 1.0f / 10.0f, "bowling_pin_TEX.jpg", 2.0f, 1.0f, -5.0f, 1000f, 0.6f));
+        addobject(new MISObject("BowlingPins2", assetManager, "BowlingPins.obj", 1.0f / 10.0f, "bowling_pin_TEX.jpg", 4.0f, 1.0f, -5.0f, 1000f, 0.6f));
+        addobject(new MISObject("BowlingPins3", assetManager, "BowlingPins.obj", 1.0f / 10.0f, "bowling_pin_TEX.jpg", 1.0f, 1.0f, -7.0f, 1000f, 0.6f));
+        addobject(new MISObject("BowlingPins4", assetManager, "BowlingPins.obj", 1.0f / 10.0f, "bowling_pin_TEX.jpg", 3.0f, 1.0f, -7.0f, 1000f, 0.6f));
+        addobject(new MISObject("BowlingPins5", assetManager, "BowlingPins.obj", 1.0f / 10.0f, "bowling_pin_TEX.jpg", 5.0f, 1.0f, -7.0f, 1000f, 0.6f));
         addlight(new MISLight(GL_LIGHT0,0.0f, 1.0f, -2.0f));
         addlight(new MISLight(GL_LIGHT1,1.0f, 10.0f, -1.0f));
         getobject("ball1").posacceleration(gravity);
         getobject("BowlingPins0").posacceleration(gravity);
         getobject("BowlingPins1").posacceleration(gravity);
         getobject("BowlingPins2").posacceleration(gravity);
+        getobject("BowlingPins3").posacceleration(gravity);
+        getobject("BowlingPins4").posacceleration(gravity);
+        getobject("BowlingPins5").posacceleration(gravity);
         getobject("ball1").posspeed(speed1);
+        getobject("ball1").rotspeed(30);
+        getobject("ball1").rotationaxis(raxis);
+        camera.moveto(campos);
+    }
+
+    public void test7(AssetManager assetManager) throws IOException {
+        addobject(new MISObject("ground", assetManager, "ground.obj", 100.0f, "tennis.jpg", 0.0f, -1.0f, -5.0f,1000000.0f,0.0f));
+        addobject(new MISObject("ball1", assetManager, "spheresmall.obj", 1.0f / 2.0f, "ball.jpg", 0f, 5.0f, 0.0f, 4000.0f, 0.7f));
+        addlight(new MISLight(GL_LIGHT0,0.0f, 1.0f, -2.0f));
+        addlight(new MISLight(GL_LIGHT1,1.0f, 10.0f, -1.0f));
+        getobject("ball1").posacceleration(gravity);
         camera.moveto(campos);
     }
 
     public boolean statemachine() {
-        float [] campos = {0.0f, 0.0f, 18.0f};
+        float [] campos = {0.0f, 0.0f, 15.0f};
 
 //        campos[0] = getobject("cube1").position[0];
-        //campos[0] = getobject("ball1").position[0];
+        campos[0] = getobject("ball1").position[0];
         camera.moveto(campos);
         return(true);
     }
