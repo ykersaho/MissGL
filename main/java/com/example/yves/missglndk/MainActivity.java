@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
 class OpenGLRenderer implements GLSurfaceView.Renderer {
     AssetManager asset;
 //      MyGame scene;
-    MyUnitTestScene scene;
+MyUnitTestScene scene;
 
     OpenGLRenderer(Context c) {
         asset = c.getAssets();
