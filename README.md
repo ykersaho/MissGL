@@ -3,10 +3,10 @@ Make it so simple 3D graphical library
 
 This project aims to share a very simple 3D library source code that can be used as a tutorial or for developing 3D demo applications.
 It's a real time implementation that takes into account gravity and collisions.
-The recursive collision algorithm is very simple and accurate.
+The collision algorithm is simple and accurate and eliminate most obvious cases rapidly.
 
 I did it just for fun and mainly wanted to have some experience in open source project environment.
-It is written in Java for Android but I will probably port it in C++. 
+It is written in Java and C++ under android studio. 
 
 Below a sample code which shows a spinning cube.
 Just describe the scene and the engine will do the rest.
