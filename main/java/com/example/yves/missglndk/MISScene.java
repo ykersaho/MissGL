@@ -8,6 +8,7 @@ import android.os.Process;
 import android.view.MotionEvent;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.Semaphore;
@@ -106,7 +107,7 @@ public class MISScene {
         picking.run();
     }
 
-    public boolean statemachine() {
+    public boolean statemachine() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         return (true);
     }
 

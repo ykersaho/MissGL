@@ -14,6 +14,7 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -71,7 +72,9 @@ public class MainActivity extends AppCompatActivity {
 class OpenGLRenderer implements GLSurfaceView.Renderer {
     AssetManager asset;
 //      MyGame scene;
-MyUnitTestScene scene;
+    //MyWallScene scene;
+    //MyUnitTestScene scene;
+    MyBocce scene;
 
     OpenGLRenderer(Context c) {
         asset = c.getAssets();
@@ -84,7 +87,10 @@ MyUnitTestScene scene;
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
         try {
-            scene = new MyUnitTestScene (asset);
+            scene = new MyBocce(asset);
+            //scene = new MyUnitTestScene (asset);
+            //scene = new MyWallScene (asset);
+
   //          scene = new MyGame (asset);
         } catch (IOException e) {
             e.printStackTrace();
@@ -94,7 +100,15 @@ MyUnitTestScene scene;
     @Override
     public void onDrawFrame(GL10 unused) {
         scene.draw();
-        scene.statemachine();
+        try {
+            scene.statemachine();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

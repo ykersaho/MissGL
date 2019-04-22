@@ -14,7 +14,7 @@ public class MySpinningCubeScene extends MISScene {
     float cuberotationspeed = 180.0f;
 
     MySpinningCubeScene(AssetManager assetManager) throws IOException {
-        addobject((MISObject) new MISObject("cube", assetManager, "cube.obj", 1.0f, "cube.png", 0.0f, 0.0f, -3.0f, 20.0f, 0.0f));
+        addobject((MISObject) new MISObject("cube", assetManager, "cube.obj", 1.0f, "cube.png", 0.0f, 0.0f, -3.0f, 20.0f, 0.0f, 0.0f));
         getobject("cube").rotspeed(cuberotationspeed);
         getobject("cube").rotationaxis(cuberotationaxis);
         // that's it !

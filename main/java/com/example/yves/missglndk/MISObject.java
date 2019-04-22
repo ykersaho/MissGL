@@ -57,6 +57,7 @@ public class MISObject {
     boolean collision=false;
     boolean picked=false;
     float   elasticity = 0.6f;
+    float   friction = 0.2f;
     float[] barycenter = {0.0f, 0.0f, 0.0f, 1.0f};
     float[] mvbarycenter = new float[4];
     float[] vertices;
@@ -68,7 +69,7 @@ public class MISObject {
     float[] ray;
     float bbray;
     float position[] = {0.0f, 0.0f, 0.0f};
-    float rotationaxis[] = {1.0f, 0.0f, 0.0f};
+    float rotationaxis[] = {0.0000001f, 0.0f, 0.0f};
     float positionspeed[] = {0.0f, 0.0f, 0.0f};
     float rotationcenter[] = {0.0f, 0.0f, 0.0f};
     float rotationangle = 0.0f;
@@ -92,10 +93,11 @@ public class MISObject {
     public MISObject(String s){
         name = s;
     }
-    public MISObject(String s, AssetManager asset, String object, float scale, String texture, float posx, float posy, float posz, float m, float elasticity) throws IOException {
+    public MISObject(String s, AssetManager asset, String object, float scale, String texture, float posx, float posy, float posz, float m, float elasticity, float friction) throws IOException {
         name = s;
         this.m=m;
         this.elasticity=elasticity;
+        this.friction=friction;
         loadobj(asset, object, scale);
         loadtexture(asset, texture);
         position[0] = posx;
@@ -229,7 +231,7 @@ public class MISObject {
             float d = (float)Math.sqrt(dx*dx+dy*dy+dz*dz);
             if(d > bbray) bbray= d;
         }
-        addnativeobject(name, nbtriangle, this.barycenter, this.bbray, this.centers, this.ray, this.normals, this.vertices,m,elasticity);
+        addnativeobject(name, nbtriangle, this.barycenter, this.bbray, this.centers, this.ray, this.normals, this.vertices,m,elasticity,friction);
         t0 = System.nanoTime();
     }
 
@@ -270,6 +272,14 @@ public class MISObject {
         t0 = System.nanoTime();
     }
 
+    void moveto(float x, float y, float z){
+        position[0] = x;
+        position[1] = y;
+        position[2] = z;
+        updatematrix();
+        t0 = System.nanoTime();
+    }
+
     void rotationangle(float rot) {
         rotationangle = rot;
         updatematrix();
@@ -280,6 +290,14 @@ public class MISObject {
         rotationaxis[0] = rot[0];
         rotationaxis[1] = rot[1];
         rotationaxis[2] = rot[2];
+        updatematrix();
+        t0 = System.nanoTime();
+    }
+
+    void rotationaxis(float x, float y, float z){
+        rotationaxis[0] = x;
+        rotationaxis[1] = y;
+        rotationaxis[2] = z;
         updatematrix();
         t0 = System.nanoTime();
     }
@@ -321,9 +339,11 @@ public class MISObject {
         Matrix.setIdentityM(mMotionMatrix, 0);
         Matrix.translateM(mMotionMatrix, 0, positionspeed[0] * dt, positionspeed[1] * dt, positionspeed[2] * dt);
         Matrix.translateM(mMotionMatrix, 0, rotationcenter[0], rotationcenter[1], rotationcenter[2]);
+        rotationspeed  = (float) Math.sqrt(rotationaxis[0]*rotationaxis[0]+rotationaxis[1]*rotationaxis[1]+rotationaxis[2]*rotationaxis[2]);
         Matrix.rotateM(mMotionMatrix, 0, rotationspeed * dt, rotationaxis[0], rotationaxis[1], rotationaxis[2]);
         Matrix.translateM(mMotionMatrix, 0, -rotationcenter[0], -rotationcenter[1], -rotationcenter[2]);
         Matrix.multiplyMM(mModelMatrix, 0, mMotionMatrix, 0, mModelMatrix, 0);        //Matrix.translateM(mModelMatrix, 0, rotationcenter[0], rotationcenter[1], rotationcenter[2]);
+
         rotationcenter[0] += positionspeed[0] * dt;
         rotationcenter[1] += positionspeed[1] * dt;
         rotationcenter[2] += positionspeed[2] * dt;
@@ -351,14 +371,18 @@ public class MISObject {
     }
 
     public void draw(MISShader shader, float[] viewMatrix, float[] projectionMatrix) {
-        float[] lightpos = {1.0f, 10.0f, 1.0f, 1.0f};
+        float[] lightpos = {1.0f, 100.0f, 1.0f, 1.0f};
         float[] color = {1.0f, 1.0f, 1.0f, 1.0f};
+        float[] shadowcolor = {0.1f, 0.1f, 0.1f, 1.0f};
         int vertexCount = nbtriangle * 3;
         float[] pmatrix = new float[16];
         float[] mvmatrix = new float[16];
         float[] identity= new float[16];
+        float[] shadowmatrix = new float[16];
         updateposition();
 
+        Matrix.setIdentityM(shadowmatrix, 0);
+        shadowmatrix[5]=0.1f;
         glEnable(GL_TEXTURE_2D);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texturesid[0]);
@@ -398,12 +422,28 @@ public class MISObject {
         // Draw the triangle
         glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 
+        // shadow
+        if((m <1000000.0f) && (m > 0)) {
+            // Pass the projection and view transformation to the shader
+            Matrix.multiplyMM(mvmatrix, 0, shadowmatrix, 0, mModelMatrix, 0);
+            Matrix.multiplyMM(mvmatrix, 0, viewMatrix, 0, mvmatrix, 0);
+            Matrix.multiplyMM(pmatrix, 0, projectionMatrix, 0, mvmatrix, 0);
+
+            glUniformMatrix4fv(shader.mMVPMatrixHandle, 1, false, pmatrix, 0);
+            glUniformMatrix4fv(shader.mMVMatrixHandle, 1, false, mvmatrix, 0);
+
+            glUniform4fv(shader.mColorHandle, 1, shadowcolor, 0);
+
+            // Draw the triangle
+            glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+        }
+
         // Disable vertex array
         glDisableVertexAttribArray(shader.mPositionHandle);
         glDisableVertexAttribArray(shader.mNormalHandle);
         glDisableVertexAttribArray(shader.mTexCoordnateHandle);
     }
-    public native void addnativeobject(String name, int nbtriangle, float [] barycenter, float bbray, float [] centers, float [] ray, float [] normals, float [] vertices, float m, float elasticity);
+    public native void addnativeobject(String name, int nbtriangle, float [] barycenter, float bbray, float [] centers, float [] ray, float [] normals, float [] vertices, float m, float elasticity, float friction);
     public native void updatenativeobject(String name, float [] modelmatrix, float [] positionspeed, float rotationspeed, float [] rotationaxis, float [] rotationcenter );
     public native float [] getpositionspeed(String name);
     public native float [] getrotationaxis(String name);

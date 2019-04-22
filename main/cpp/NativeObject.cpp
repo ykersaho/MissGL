@@ -41,7 +41,7 @@ jboolean getcollisionstate(const char *n) {
     return(o->collision);
 }
 
-void addobject(const char *name, jint nbtriangle, jfloat *barycenter, jfloat bbray, jfloat *centers, jfloat *ray, jfloat *normals, jfloat *vertices, jfloat m, jfloat elasticity) {
+void addobject(const char *name, jint nbtriangle, jfloat *barycenter, jfloat bbray, jfloat *centers, jfloat *ray, jfloat *normals, jfloat *vertices, jfloat m, jfloat elasticity,jfloat friction) {
     if(hmap[name] != NULL)
         return;
     NativeObject *obj = new NativeObject();
@@ -68,7 +68,7 @@ void addobject(const char *name, jint nbtriangle, jfloat *barycenter, jfloat bbr
     obj->elasticity = elasticity;
     objects.push_back(obj);
     obj->elasticity = elasticity;
-    obj->friction = 0.99f;
+    obj->friction = friction;
     hmap[obj->name] = obj;
 };
 
@@ -293,7 +293,7 @@ void impact(NativeObject *o1, NativeObject *o2, float *n2, float *VOUT, float *R
     float e1 = o1->m / (o1->m + o2->m);
     float e2 = o2->m / (o1->m + o2->m);
     float f = e2 * (s2 - s1) * o1->elasticity + e1 * s1 + e2 * s2;
-
+    float resistance = (1.0f-o1->friction*o2->friction);
     V1X[0] = s1 * N[0];
     V1X[1] = s1 * N[1];
     V1X[2] = s1 * N[2];
@@ -301,9 +301,9 @@ void impact(NativeObject *o1, NativeObject *o2, float *n2, float *VOUT, float *R
     V1Y[1] = V1[1] - s1 * N[1];
     V1Y[2] = V1[2] - s1 * N[2];
 
-    VOUT[0] = f*N[0] + o1->friction*V1Y[0];
-    VOUT[1] = f*N[1] + o1->friction*V1Y[1];
-    VOUT[2] = f*N[2] + o1->friction*V1Y[2];
+    VOUT[0] = f*N[0] + resistance*V1Y[0];
+    VOUT[1] = f*N[1] + resistance*V1Y[1];
+    VOUT[2] = f*N[2] + resistance*V1Y[2];
 
 
     // rotation impact
@@ -316,9 +316,9 @@ void impact(NativeObject *o1, NativeObject *o2, float *n2, float *VOUT, float *R
         G[1] = G[1]/lg;
         G[2] = G[2]/lg;
     }
-    VR[0] = V1X[0] + 0.1f*V1Y[0];
-    VR[1] = V1X[1] + 0.1f*V1Y[1];
-    VR[2] = V1X[2] + 0.1f*V1Y[2];
+    VR[0] = e2*V1X[0] + e2*0.2f*V1Y[0];
+    VR[1] = e2*V1X[1] + e2*0.2f*V1Y[1];
+    VR[2] = e2*V1X[2] + e2*0.2f*V1Y[2];
 
     VP[0] = G[1]*VR[2]-G[2]*VR[1];
     VP[1] = G[2]*VR[0]-G[0]*VR[2];
@@ -329,9 +329,9 @@ void impact(NativeObject *o1, NativeObject *o2, float *n2, float *VOUT, float *R
         VP[0] = (VP[0]/lg) * 180.0f / 3.1415926f;;
         VP[1] = (VP[1]/lg) * 180.0f / 3.1415926f;;
         VP[2] = (VP[2]/lg) * 180.0f / 3.1415926f;;
-        RA[0] = RA[0]*o1->friction+VP[0];
-        RA[1] = RA[1]*o1->friction+VP[1];
-        RA[2] = RA[2]*o1->friction+VP[2];
+        RA[0] = RA[0]*resistance+VP[0];
+        RA[1] = RA[1]*resistance+VP[1];
+        RA[2] = RA[2]*resistance+VP[2];
         memcpy(RC, ccc, sizeof(o1->rotationcenter));
     }
 }
@@ -417,7 +417,7 @@ void impacts(NativeObject *o1) {
              vp[1] = r[2] * RA[0] - r[0] * RA[2];
              vp[2] = r[0] * RA[1] - r[1] * RA[0];
              s = vp[0] * N[0] + vp[1] * N[1] + vp[2] * N[2];
-             if (s > 0) {
+             if ((s > 0) && (o1->impacts[i].o->m >= o1->m)) {
                  maxlr = lr;
                  // remove constraint
                  r[0] /= lr;
@@ -461,7 +461,7 @@ void collision(NativeObject *o1, NativeObject *o2) {
     float zero[] = {0.0f, 0.0f, 0.0f};
     int i;
 
-    if ((o1->m == 0) || (o2->m == 0))
+    if ((o1->m == 0) || (o2->m == 0) || (o1->m == -1) || (o2->m == -1))
         return;
 
     if ((o1->m >= 1000000) && (o2->m >= 1000000))
@@ -537,7 +537,7 @@ void collision() {
     for (i=0;i<objects.size();i++) {
         o1 = objects[i];
         // ignore if static objects or no collision
-        if((o1->m==0) || (o1->m >=1000000) || (o1->collision == false)) {
+        if((o1->m==0) || (o1->m >=1000000) || (o1->m == -1) || (o1->collision == false)) {
             o1->collision = false;
             o1->newpositionspeed[0] = o1->positionspeed[0];
             o1->newpositionspeed[1] = o1->positionspeed[1];

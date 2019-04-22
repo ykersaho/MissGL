@@ -9,7 +9,7 @@
 #include <jni.h>
 #include <string>
 
-void addobject(const char *name, jint nbtriangle, jfloat *barycenter, jfloat bbray, jfloat *centers, jfloat *ray, jfloat *normals, jfloat *vertices, jfloat m, jfloat elasticity);
+void addobject(const char *name, jint nbtriangle, jfloat *barycenter, jfloat bbray, jfloat *centers, jfloat *ray, jfloat *normals, jfloat *vertices, jfloat m, jfloat elasticity, jfloat friction);
 void updateobject(const char *name, jfloat *modelmatrix, jfloat *positionspeed, jfloat rotationspeed, jfloat *rotationaxis, jfloat *rotationcenter);
 void getpositionspeed(const char *n, jfloat *positionspeed, int size);
 void getrotationaxis(const char *n, jfloat *rotationaxis, int size);

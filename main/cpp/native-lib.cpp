@@ -7,7 +7,7 @@ JNIEXPORT void JNICALL
 Java_com_example_yves_missglndk_MISObject_addnativeobject(JNIEnv *env, jobject instance, jstring name_,
                                          jint nbtriangle, jfloatArray barycenter_, jfloat bbray,
                                          jfloatArray centers_, jfloatArray ray_, jfloatArray normals_,
-                                         jfloatArray vertices_, jfloat m, jfloat elasticity) {
+                                         jfloatArray vertices_, jfloat m, jfloat elasticity, jfloat friction) {
     const char *name = env->GetStringUTFChars(name_, 0);
     jfloat *barycenter = env->GetFloatArrayElements(barycenter_, NULL);
     jfloat *centers = env->GetFloatArrayElements(centers_, NULL);
@@ -15,7 +15,7 @@ Java_com_example_yves_missglndk_MISObject_addnativeobject(JNIEnv *env, jobject i
     jfloat *ray = env->GetFloatArrayElements(ray_, NULL);
     jfloat *vertices = env->GetFloatArrayElements(vertices_, NULL);
 
-    addobject(name, nbtriangle, barycenter, bbray, centers, ray, normals, vertices, m, elasticity);
+    addobject(name, nbtriangle, barycenter, bbray, centers, ray, normals, vertices, m, elasticity, friction);
 
     env->ReleaseStringUTFChars(name_, name);
     env->ReleaseFloatArrayElements(barycenter_, barycenter, 0);

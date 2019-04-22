@@ -64,8 +64,9 @@ public class MISShader {
             "gl_FragColor = a_Color;" +
             "}";
 
-    String fragmentShaderCode =
+    String fragmentShaderCodeDiffuse =
             "precision mediump float;"+        // Set the default precision to medium.
+                    "uniform vec4 a_Color;" +
                     "uniform vec3 u_LightPos;"+        // The position of the light in eye space.
                     "uniform sampler2D u_Texture;"+    // The input texture.
                     "varying vec3 v_Position;"+        // Interpolated position for this fragment.
@@ -78,8 +79,30 @@ public class MISShader {
                     "diffuse = diffuse * (1.0 / (1.0 + (0.10 * distance)));"+     // Add attenuation.
                     "diffuse = diffuse + 0.5;"+                                   // Add ambient lighting
                     "gl_FragColor = (diffuse * texture2D(u_Texture, v_TexCoordinate));"+ // Multiply the color by the diffuse illumination level and texture value to get final output color.
-                    "gl_FragColor.a = 1.0;"+
+                    "gl_FragColor.a = texture2D(u_Texture, v_TexCoordinate).a;"+ // Multiply the color by the diffuse illumination level and texture value to get final output color.
+                    "gl_FragColor.r *= a_Color.r;"+ // Multiply the color by the diffuse illumination level and texture value to get final output color.
+                    "gl_FragColor.g *= a_Color.g;"+ // Multiply the color by the diffuse illumination level and texture value to get final output color.
+                    "gl_FragColor.b *= a_Color.b;"+ // Multiply the color by the diffuse illumination level and texture value to get final output color.
                 "}";
+
+    String fragmentShaderCode =
+            "precision mediump float;"+        // Set the default precision to medium.
+                    "uniform vec4 a_Color;" +
+                    "uniform vec3 u_LightPos;"+        // The position of the light in eye space.
+                    "uniform sampler2D u_Texture;"+    // The input texture.
+                    "varying vec3 v_Position;"+        // Interpolated position for this fragment.
+                    "varying vec3 v_Normal;"+          // Interpolated normal for this fragment.
+                    "varying vec2 v_TexCoordinate;"+   // Interpolated texture coordinate per fragment.
+                    "void main() {"+                     // The entry point for our fragment shader.
+                    "float distance = length(u_LightPos - v_Position);"+          // Will be used for attenuation.
+                    "vec3 lightVector = normalize(u_LightPos - v_Position);"+     // Get a lighting direction vector from the light to the vertex.
+                    "float diffuse = max(dot(v_Normal, lightVector), 0.0);"+      // Calculate the dot product of the light vector and vertex normal.
+                    "gl_FragColor = (diffuse * texture2D(u_Texture, v_TexCoordinate));"+ // Multiply the color by the diffuse illumination level and texture value to get final output color.
+                    "gl_FragColor.a = texture2D(u_Texture, v_TexCoordinate).a;"+ // Multiply the color by the diffuse illumination level and texture value to get final output color.
+                    "gl_FragColor.r *= a_Color.r;"+ // Multiply the color by the diffuse illumination level and texture value to get final output color.
+                    "gl_FragColor.g *= a_Color.g;"+ // Multiply the color by the diffuse illumination level and texture value to get final output color.
+                    "gl_FragColor.b *= a_Color.b;"+ // Multiply the color by the diffuse illumination level and texture value to get final output color.
+                    "}";
 
     int vertexShader;
     int fragmentShader;
