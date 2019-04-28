@@ -73,7 +73,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
     AssetManager asset;
 //      MyGame scene;
     //MyWallScene scene;
-    //MyUnitTestScene scene;
+//    MyUnitTestScene scene;
     MyBocce scene;
 
     OpenGLRenderer(Context c) {
@@ -88,7 +88,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         glDepthFunc(GL_LEQUAL);
         try {
             scene = new MyBocce(asset);
-            //scene = new MyUnitTestScene (asset);
+       //     scene = new MyUnitTestScene (asset);
             //scene = new MyWallScene (asset);
 
   //          scene = new MyGame (asset);
@@ -99,14 +99,13 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onDrawFrame(GL10 unused) {
-        scene.draw();
         try {
-            scene.statemachine();
+            scene.draw();
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
         } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
             e.printStackTrace();
         }
     }

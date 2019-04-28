@@ -332,14 +332,14 @@ public class MISObject {
         long t1 = System.nanoTime();
         long ldt = t1 - t0;
         float dt;
-        if (ldt > 20000000)
-            ldt = 20000000;   // CPU is too slow no real time
+        //if (ldt > 20000000)
+          //  ldt = 20000000;   // CPU is too slow no real time
         t0 = t1;
         dt = (float) ((double) ldt / 1000000000.0);
         Matrix.setIdentityM(mMotionMatrix, 0);
         Matrix.translateM(mMotionMatrix, 0, positionspeed[0] * dt, positionspeed[1] * dt, positionspeed[2] * dt);
         Matrix.translateM(mMotionMatrix, 0, rotationcenter[0], rotationcenter[1], rotationcenter[2]);
-        rotationspeed  = (float) Math.sqrt(rotationaxis[0]*rotationaxis[0]+rotationaxis[1]*rotationaxis[1]+rotationaxis[2]*rotationaxis[2]);
+        //float rs = rotationspeed * (float) Math.sqrt(rotationaxis[0]*rotationaxis[0]+rotationaxis[1]*rotationaxis[1]+rotationaxis[2]*rotationaxis[2]);
         Matrix.rotateM(mMotionMatrix, 0, rotationspeed * dt, rotationaxis[0], rotationaxis[1], rotationaxis[2]);
         Matrix.translateM(mMotionMatrix, 0, -rotationcenter[0], -rotationcenter[1], -rotationcenter[2]);
         Matrix.multiplyMM(mModelMatrix, 0, mMotionMatrix, 0, mModelMatrix, 0);        //Matrix.translateM(mModelMatrix, 0, rotationcenter[0], rotationcenter[1], rotationcenter[2]);

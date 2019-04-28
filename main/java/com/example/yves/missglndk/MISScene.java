@@ -88,7 +88,7 @@ public class MISScene {
         lights.add(light);
     }
 
-    public void draw() {
+    public void draw() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         int i;
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT | GLES30.GL_DEPTH_BUFFER_BIT);
         Matrix.setIdentityM(mProjectionMatrix, 0);
@@ -105,6 +105,7 @@ public class MISScene {
         }
         collision.run();
         picking.run();
+        statemachine();
     }
 
     public boolean statemachine() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
