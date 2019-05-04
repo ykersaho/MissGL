@@ -82,7 +82,9 @@ public class MISObject {
     FloatBuffer colorBuffer = null;
     ShortBuffer indexBuffer = null;
     FloatBuffer textureBuffer = null;
-    int[] texturesid = new int[1];
+    int[] texturesid = new int[20];
+    int nbtexture=0;
+    int texture=0;
     Bitmap bitmap = null;
     float m;
 
@@ -99,12 +101,14 @@ public class MISObject {
         this.elasticity=elasticity;
         this.friction=friction;
         loadobj(asset, object, scale);
+        glGenTextures(20, texturesid, 0);
         loadtexture(asset, texture);
         position[0] = posx;
         position[1] = posy;
         position[2] = posz;
         updatematrix();
     }
+
     void loadobj(AssetManager assetManager, String name, float scale) throws IOException {
         InputStream input = null;
         try {
@@ -126,8 +130,7 @@ public class MISObject {
         }
         bitmap = BitmapFactory.decodeStream(input);
 
-        glGenTextures(1, texturesid, 0);
-        glBindTexture(GL_TEXTURE_2D, texturesid[0]);
+        glBindTexture(GL_TEXTURE_2D, texturesid[nbtexture++]);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -385,7 +388,7 @@ public class MISObject {
         shadowmatrix[5]=0.1f;
         glEnable(GL_TEXTURE_2D);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texturesid[0]);
+        glBindTexture(GL_TEXTURE_2D, texturesid[texture]);
         Matrix.setIdentityM(identity, 0);
         if(m != 0) {
             Matrix.multiplyMM(mvmatrix, 0, viewMatrix, 0, mModelMatrix, 0);

@@ -14,6 +14,8 @@ public class MyBocce extends MISScene  {
         String ballname = "cochonnet";
         int ballp1=0;
         int ballp2=0;
+        int score1 = 0;
+        int score2 = 0;
         touchhistory thi = new touchhistory();
         long t0,t1;
         float [] gravity= {0.0f, -9.0f, 0.0f};
@@ -25,7 +27,6 @@ public class MyBocce extends MISScene  {
 
     MyBocce(AssetManager assetManager) throws IOException {
             addobject(new MISObject("ground", assetManager, "ground.obj", 200.0f, "ground.jpg", 0.0f, 0.0f, -5.0f,1000000.0f,0.0f,0.3f));
-            addobject(new MISObject("circle", assetManager, "circle.obj", 10.0f, "circle.png", 0.0f, 0.1f, -5.0f,1000000.0f,0.0f,0.3f));
             addobject(new MISObject("cochonnet", assetManager, "spheresmall.obj", 1.0f / 30.0f, "cochonnet.jpg", 0.0f, 0.4f, -10.0f, 100f, 0.5f, 0.1f));
             addobject(new MISObject("ball1p1", assetManager, "spheresmall.obj", 1.0f / 10.0f, "petanque1.png", 2.5f, 2.0f, 20.0f, 1000.0f, 0.3f, 0.1f));
             addobject(new MISObject("ball2p1", assetManager, "spheresmall.obj", 1.0f / 10.0f, "petanque1.png", 2.5f, 2.0f, 20.0f, 1000.0f, 0.3f, 0.1f));
@@ -33,9 +34,12 @@ public class MyBocce extends MISScene  {
             addobject(new MISObject("ball1p2", assetManager, "spheresmall.obj", 1.0f / 10.0f, "petanque3.jpg", 2.5f, 2.0f, 20.0f, 1000.0f, 0.3f, 0.1f));
             addobject(new MISObject("ball2p2", assetManager, "spheresmall.obj", 1.0f / 10.0f, "petanque3.jpg", 0.0f, 0.4f, -10.0f, 1000f, 0.3f, 0.1f));
             addobject(new MISObject("ball3p2", assetManager, "spheresmall.obj", 1.0f / 10.0f, "petanque3.jpg", 2f, 1.0f, -10.0f, 1000f, 0.3f, 0.1f));
-            addobject(new MISObject("buttonrotate", assetManager, "button.obj", 1.0f/5.0f, "rotate.png", -0.6f, 0.7f, -2.5f,0.0f,0.0f,0.0f));
-            addobject(new MISObject("buttonlaunch", assetManager, "button.obj", 1.0f/5.0f, "launch.png", -0.6f, 0.4f, -2.5f,0.0f,0.0f,0.0f));
-            addobject(new MISObject("buttoncamera", assetManager, "button.obj", 1.0f/5.0f, "cam.png", -0.6f, 0.1f, -2.5f,0.0f,0.0f,0.0f));
+            addobject(new MISObject("circle", assetManager, "circle.obj", 10.0f, "circle.png", 0.0f, 0.1f, -5.0f,1000000.0f,0.0f,0.3f));
+            addobject(new MISObject("buttonrotate", assetManager, "button.obj", 1.0f/5.0f, "rotate.png", -0.6f, 0.6f, -2.5f,0.0f,0.0f,0.0f));
+            addobject(new MISObject("buttonlaunch", assetManager, "button.obj", 1.0f/5.0f, "launch.png", -0.6f, 0.3f, -2.5f,0.0f,0.0f,0.0f));
+            addobject(new MISObject("buttoncamera", assetManager, "button.obj", 1.0f/5.0f, "cam.png", -0.6f, 0.0f, -2.5f,0.0f,0.0f,0.0f));
+            addobject(new MISObject("score1", assetManager, "button.obj", 1.0f/10.0f, "0.jpg", -0.6f, 0.9f, -2.5f,0.0f,0.0f,0.0f));
+            addobject(new MISObject("score2", assetManager, "button.obj", 1.0f/10.0f, "0.jpg", 0.6f, 0.9f, -2.5f,0.0f,0.0f,0.0f));
             addlight(new MISLight(GL_LIGHT0,0.0f, 10.0f, -20.0f));
             addlight(new MISLight(GL_LIGHT1,1.0f, 100.0f, -1.0f));
             getobject("cochonnet").posacceleration(gravity);
@@ -45,6 +49,12 @@ public class MyBocce extends MISScene  {
             getobject("ball1p2").posacceleration(gravity);
             getobject("ball2p2").posacceleration(gravity);
             getobject("ball3p2").posacceleration(gravity);
+            int i;
+            for(i=1;i<14;i++) {
+                getobject("score1").loadtexture(assetManager,i+".jpg");
+                getobject("score2").loadtexture(assetManager,i+".jpg");
+            }
+
         }
 
         public String initstateintro() {
@@ -67,7 +77,7 @@ public class MyBocce extends MISScene  {
             long t1 = System.nanoTime();
             long ldt = t1 - t0;
             if(ldt > 10L*1000000000L)
-                return("initstategame");
+                return("initscore");
             return("stateintro");
         }
 
@@ -116,6 +126,7 @@ public class MyBocce extends MISScene  {
             getobject("ball3p2").rotspeed(90);
             ballp1=0;
             ballp2=0;
+            ballname="cochonnet";
             return("stategame");
         }
 
@@ -357,13 +368,58 @@ public class MyBocce extends MISScene  {
                     }
                     ballname = "ball"+ball+"p"+player;
                     if(ballp1 >3 && ballp2 > 3)
-                        return ("initstategame");
+                        return ("stateupdatescore");
                 }
                 return("stategame");
             }
             return("statewaitresult");
         }
 
+        public String initscore() {
+            score1=0;
+            score2=0;
+            getobject("score1").texture=score1;
+            getobject("score2").texture=score2;
+            return("initstategame");
+        }
+
+        public String waittouch() {
+            touchhistory myth = new touchhistory();
+            if(gettouchevent(myth)) { // touch event in the queue
+                switch (myth.action) {
+                    case MotionEvent.ACTION_UP:
+                        return ("initstategame");
+                }
+            }
+            return("waittouch");
+        }
+
+        public String stateupdatescore() {
+            touchhistory myth = new touchhistory();
+            float p1d1 = distance("ball1p1");
+            float p1d2 = distance("ball2p1");
+            float p1d3 = distance("ball3p1");
+            float p2d1 = distance("ball1p2");
+            float p2d2 = distance("ball2p2");
+            float p2d3 = distance("ball3p2");
+            if((p1d1 < p2d1) && (p1d1 < p2d2) && (p1d1 < p2d3)) score1++;
+            if((p1d2 < p2d1) && (p1d2 < p2d2) && (p1d2 < p2d3)) score1++;
+            if((p1d3 < p2d1) && (p1d3 < p2d2) && (p1d3 < p2d3)) score1++;
+            if((p2d1 < p1d1) && (p2d1 < p1d2) && (p2d1 < p1d3)) score2++;
+            if((p2d2 < p1d1) && (p2d2 < p1d2) && (p2d2 < p1d3)) score2++;
+            if((p2d3 < p1d1) && (p2d3 < p1d2) && (p2d3 < p1d3)) score2++;
+            if(score1 >=13) score1=13;
+            if(score2 >=13) score2=13;
+            getobject("score1").texture=score1;
+            getobject("score2").texture=score2;
+            if(score1 ==13) return("endgame");
+            if(score2 ==13) return("endgame");
+            return("waittouch");
+        }
+
+        public String endgame() {
+            return("initscore");
+        }
 
         public boolean statemachine() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
             state = (String) getClass().getMethod(state).invoke(this);
