@@ -16,24 +16,24 @@ public class MyWallScene extends MISScene {
     MISObject activeobject = null;
     touchhistory thi = new touchhistory();
     float [] gravity= {0.0f, -9.0f, 0.0f};
-    float [] campos = {0.0f, 0.0f, 10.0f};
+    float [] campos = {0.0f, 2.0f, 10.0f};
     float [] ballpos = {0.0f, 0.5f, 2.0f};
 
     MyWallScene(AssetManager assetManager) throws IOException {
         addobject(new MISObject("ball1", assetManager, "spheresmall.obj", 1.0f / 40.0f, "ball.jpg", 0.1f, 16f, 1.0f, 20.0f, 0.5f, 0.5f));
         addobject(new MISObject("ball2", assetManager, "spheresmall.obj", 1.0f / 40.0f, "ball.jpg", 0.2f, 15f, 1.0f, 20.0f, 0.5f, 0.5f));
-        addobject(new MISObject("ball3", assetManager, "spheresmall.obj", 1.0f / 40.0f, "ball.jpg", 0.3f, 8f, 1.0f, 20.0f, 0.5f, 0.5f));
+        addobject(new MISObject("ball3", assetManager, "spheresmall.obj", 1.0f / 40.0f, "ball.jpg", 0.3f, 9f, 1.0f, 20.0f, 0.5f, 0.5f));
         addobject(new MISObject("ball4", assetManager, "spheresmall.obj", 1.0f / 40.0f, "ball.jpg", 0.4f, 5f, 1.0f, 20.0f, 0.5f, 0.5f));
-        addobject(new MISObject("ball5", assetManager, "spheresmall.obj", 1.0f / 40.0f, "ball.jpg", -0.3f, 2f, 1.0f, 20.0f, 0.5f, 0.5f));
-        addobject(new MISObject("ball6", assetManager, "spheresmall.obj", 1.0f / 40.0f, "ball.jpg", -0.1f, 4f, 1.0f, 20.0f, 0.5f, 0.5f));
-        addobject(new MISObject("ball7", assetManager, "spheresmall.obj", 1.0f / 40.0f, "ball.jpg", -0.2f, 1f, 1.0f, 20.0f, 0.5f, 0.5f));
-        addobject(new MISObject("ball8", assetManager, "spheresmall.obj", 1.0f / 40.0f, "ball.jpg", -0.4f, 0f, 1.0f, 20.0f, 0.5f, 0.5f));
-        addobject(new MISObject("ball9", assetManager, "spheresmall.obj", 1.0f / 40.0f, "ball.jpg", -0.5f, 25f, 1.0f, 20.0f, 0.5f, 0.5f));
-        addobject(new MISObject("ground", assetManager, "tground.obj", 10.0f, "tennis.jpg", 0.0f, -2.0f, 0.0f,1000000.0f,0.0f,0.0f));
-        addobject(new MISObject("wall", assetManager, "wall.obj", 10.0f, "wall.jpg", 0.0f, 0.0f, -5.0f,1000000.0f,0.0f,0.0f));
+        addobject(new MISObject("ball5", assetManager, "spheresmall.obj", 1.0f / 40.0f, "ball.jpg", -0.3f, 4f, 1.0f, 20.0f, 0.5f, 0.5f));
+        addobject(new MISObject("ball6", assetManager, "spheresmall.obj", 1.0f / 40.0f, "ball.jpg", -0.1f, 8f, 1.0f, 20.0f, 0.5f, 0.5f));
+        addobject(new MISObject("ball7", assetManager, "spheresmall.obj", 1.0f / 40.0f, "ball.jpg", -0.2f, 6f, 1.0f, 20.0f, 0.5f, 0.5f));
+        addobject(new MISObject("ball8", assetManager, "spheresmall.obj", 1.0f / 40.0f, "ball.jpg", -0.4f, 5f, 1.0f, 20.0f, 0.5f, 0.5f));
+        addobject(new MISObject("ball9", assetManager, "spheresmall.obj", 1.0f / 40.0f, "ball.jpg", -0.5f, 20f, 1.0f, 20.0f, 0.5f, 0.5f));
+        addobject(new MISObject("ground", assetManager, "tground.obj", 10.0f, "tennis.jpg", 0.0f, 0.0f, 0.0f,1000000.0f,0.0f,0.0f));
+        addobject(new MISObject("wall", assetManager, "wall.obj", 10.0f, "wall.jpg", 0.0f, 2.0f, -5.0f,1000000.0f,0.0f,0.0f));
         addobject(new MISObject("button", assetManager, "button.obj", 1.0f/5.0f, "button.png", -0.4f, 0.9f, -1.5f,0.0f,0.0f,0.0f));
-        addlight(new MISLight(GL_LIGHT0,0.0f, 1.0f, -2.0f));
-        addlight(new MISLight(GL_LIGHT1,1.0f, 10.0f, -1.0f));
+        addlight(new MISLight(GL_LIGHT0,0.0f, 20.0f, -10.0f));
+        addlight(new MISLight(GL_LIGHT1,1.0f, 10.0f, -3.0f));
         getobject("ball1").posacceleration(gravity);
         getobject("ball2").posacceleration(gravity);
         getobject("ball3").posacceleration(gravity);

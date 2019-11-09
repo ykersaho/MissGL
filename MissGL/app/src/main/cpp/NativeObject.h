@@ -22,17 +22,8 @@ void collision();
 class NativeObject {
 public:
     NativeObject();
-
     NativeObject(const std::string &name);
-
 public:
-    class impact {
-    public:
-        NativeObject *o;
-        jint nid;
-        jfloat point[3];
-    };
-
     jint nbtriangle;
     jfloat bbray;
     std::string name;
@@ -45,9 +36,6 @@ public:
     jfloat *mvcenters;
     jfloat *mvnormals;
     jfloat *mvvertices;
-    impact *impacts;
-    jint nbimpacts;
-    jint nbcollisions;
     jfloat modelmatrix[16];
     jfloat positionspeed[3];
     jfloat newpositionspeed[3];
@@ -64,5 +52,13 @@ public:
     jboolean collision;
 };
 
+class Impact {
+public:
+    NativeObject *o1;
+    NativeObject *o2;
+    jint nid1;
+    jint nid2;
+    jfloat point[3];
+};
 
 #endif //MISSGL_NATIVEOBJECT_H
