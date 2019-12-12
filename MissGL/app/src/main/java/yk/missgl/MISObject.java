@@ -385,7 +385,7 @@ public class MISObject {
         updateposition();
 
         Matrix.setIdentityM(shadowmatrix, 0);
-        shadowmatrix[5]=0.000001f;
+        shadowmatrix[5]=0.0001f;
         glEnable(GL_TEXTURE_2D);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texturesid[texture]);
@@ -426,7 +426,7 @@ public class MISObject {
         glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 
         // shadow
-        if((m <1000000.0f) && (m > 0)) {
+/*        if((m <1000000.0f) && (m > 0)) {
             // Pass the projection and view transformation to the shader
             Matrix.multiplyMM(mvmatrix, 0, shadowmatrix, 0, mModelMatrix, 0);
             Matrix.multiplyMM(mvmatrix, 0, viewMatrix, 0, mvmatrix, 0);
@@ -440,7 +440,7 @@ public class MISObject {
             // Draw the triangle
             glDrawArrays(GL_TRIANGLES, 0, vertexCount);
         }
-
+*/
         // Disable vertex array
         glDisableVertexAttribArray(shader.mPositionHandle);
         glDisableVertexAttribArray(shader.mNormalHandle);

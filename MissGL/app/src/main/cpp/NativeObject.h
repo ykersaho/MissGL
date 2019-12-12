@@ -50,6 +50,7 @@ public:
     jfloat friction;
     jfloat m;
     jboolean collision;
+    jint nbimpact;
 };
 
 class Impact {

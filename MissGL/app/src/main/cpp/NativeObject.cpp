@@ -7,6 +7,7 @@
 #include <map>
 #include <string>
 #include <cmath>
+#include <android/log.h>
 
 std::vector <NativeObject *> objects;
 std::map<std::string, NativeObject *> hmap;
@@ -244,90 +245,208 @@ void edgecollision(NativeObject *o1, int ct1l, int *ct1, NativeObject *o2, int c
     }
 }
 
-void impact(NativeObject *o1, NativeObject *o2, float *n2, float *VOUT, float *RA, float *RS, float *RC, float *ccc) {
-    float G[3];
+int impact(NativeObject *o1, NativeObject *o2, float *n1, float *n2, float *VOUT, float *RA, float *RS, float *RC, float *ccc) {
+    float R1[3];
+    float R2[3];
+    float G1[3];
+    float G2[3];
     float VR[3];
-    float V1[3];
-    float V2[3];
-    float V1X[3];
-    float V1Y[3];
-    float N[3];
+    float VT1[3];
+    float VT2[3];
+    float VT1X[3];
+    float VT2X[3];
+    float VT1Y[3];
+    float VT2Y[3];
+
+    float VG1[3];
+    float VG2[3];
+    float VG1X[3];
+    float VG2X[3];
+    float VG1Y[3];
+    float VG2Y[3];
+
+    float VR1[3];
+    float VR2[3];
+    float VR1X[3];
+    float VR2X[3];
+    float VR1Y[3];
+    float VR2Y[3];
+    float N1[3];
+    float N2[3];
     float VP[3];
     float VP1[3];
-    float lv1,lg,ln,lvp;
-    memcpy(V1, o1->positionspeed, sizeof(V1));
-    memcpy(V2, o2->positionspeed, sizeof(V2));
-    memcpy(RA, o1->rotationaxis, sizeof(o1->rotationaxis));
-    memcpy(RC, o1->rotationcenter, sizeof(o1->rotationcenter));
+    float coef1,coef2;
+    float lv1,lg1,lg2,ln,lvp;
+    memcpy(VT1, o1->positionspeed, sizeof(VT1));
+    memcpy(VT2, o2->positionspeed, sizeof(VT2));
+    memcpy(RA, o1->rotationaxis, sizeof(float)*3);
+    memcpy(RC, o1->mvbarycenter, sizeof(float)*3);
     *RS=o1->rotationspeed;
-    VOUT[0] = V1[0];
-    VOUT[1] = V1[1];
-    VOUT[2] = V1[2];
+    VOUT[0] = VT1[0];
+    VOUT[1] = VT1[1];
+    VOUT[2] = VT1[2];
 
     if((o1->m==0.0f) || (o1->m>=1000000.0f))
-        return;
+        return(0);
+
+    ln=(float) sqrt(n1[0]*n1[0]+n1[1]*n1[1]+n1[2]*n1[2]);
+    if(ln > 0.0000001) {
+        N1[0] = n1[0] / ln;
+        N1[1] = n1[1] / ln;
+        N1[2] = n1[2] / ln;
+    }
 
     ln=(float) sqrt(n2[0]*n2[0]+n2[1]*n2[1]+n2[2]*n2[2]);
     if(ln > 0.0000001) {
-        N[0] = n2[0] / ln;
-        N[1] = n2[1] / ln;
-        N[2] = n2[2] / ln;
+        N2[0] = n2[0] / ln;
+        N2[1] = n2[1] / ln;
+        N2[2] = n2[2] / ln;
     }
 
-    float s1 = (V1[0]*N[0]+V1[1]*N[1]+V1[2]*N[2]);
-    float s2 = (V2[0]*N[0]+V2[1]*N[1]+V2[2]*N[2]);
+    // first get the speed vector at the impact (rotation + translation)
+    __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "--------------------------------O1------%d\n",o1);
+    R1[0] = o1->mvbarycenter[0] - ccc[0];
+    R1[1] = o1->mvbarycenter[1] - ccc[1];
+    R1[2] = o1->mvbarycenter[2] - ccc[2];
+    VR1[0] = R1[1]*o1->rotationaxis[2]-R1[2]*o1->rotationaxis[1];
+    VR1[1] = R1[2]*o1->rotationaxis[0]-R1[0]*o1->rotationaxis[2];
+    VR1[2] = R1[0]*o1->rotationaxis[1]-R1[1]*o1->rotationaxis[0];
+    G1[0] = o1->mvbarycenter[0] - ccc[0];
+    G1[1] = o1->mvbarycenter[1] - ccc[1];
+    G1[2] = o1->mvbarycenter[2] - ccc[2];
+    lg1=(float) sqrt(G1[0]*G1[0]+G1[1]*G1[1]+G1[2]*G1[2]);
+    if(lg1 > 0.001) {
+        G1[0] = G1[0] / lg1;
+        G1[1] = G1[1] / lg1;
+        G1[2] = G1[2] / lg1;
+        VR1[0] = VR1[0] / lg1;
+        VR1[1] = VR1[1] / lg1;
+        VR1[2] = VR1[2] / lg1;
+    } else {
+        G1[0] = 0;
+        G1[1] = 0;
+        G1[2] = 0;
+        VR1[0] = 0;
+        VR1[1] = 0;
+        VR1[2] = 0;
+    }
 
-    if(s1 > s2)
-        return; // no impact
+    R2[0] = o2->mvbarycenter[0] - ccc[0];
+    R2[1] = o2->mvbarycenter[1] - ccc[1];
+    R2[2] = o2->mvbarycenter[2] - ccc[2];
+    VR2[0] = R2[1]*o2->rotationaxis[2]-R2[2]*o2->rotationaxis[1];
+    VR2[1] = R2[2]*o2->rotationaxis[0]-R2[0]*o2->rotationaxis[2];
+    VR2[2] = R2[0]*o2->rotationaxis[1]-R2[1]*o2->rotationaxis[0];
+    G2[0] = o2->mvbarycenter[0] - ccc[0];
+    G2[1] = o2->mvbarycenter[1] - ccc[1];
+    G2[2] = o2->mvbarycenter[2] - ccc[2];
+    lg2=(float) sqrt(G2[0]*G2[0]+G2[1]*G2[1]+G2[2]*G2[2]);
+    if(lg2 > 0.0000001) {
+        G2[0] = G2[0] / lg2;
+        G2[1] = G2[1] / lg2;
+        G2[2] = G2[2] / lg2;
+    } else {
+        G2[0] = 0;
+        G2[1] = 0;
+        G2[2] = 0;
+    }
+
+    //components among G
+    float sg1 = (VT1[0]*G1[0]+VT1[1]*G1[1]+VT1[2]*G1[2]);
+    VG1X[0] = sg1 * G1[0];
+    VG1X[1] = sg1 * G1[1];
+    VG1X[2] = sg1 * G1[2];
+    VG1Y[0] = VT1[0] - VG1X[0];
+    VG1Y[1] = VT1[1] - VG1X[1];
+    VG1Y[2] = VT1[2] - VG1X[2];
+
+    float sg2 = (VT2[0]*G2[0]+VT2[1]*G2[1]+VT2[2]*G2[2]);
+    VG2X[0] = sg2 * G2[0];
+    VG2X[1] = sg2 * G2[1];
+    VG2X[2] = sg2 * G2[2];
+    VG2Y[0] = VT2[0] - VG2X[0];
+    VG2Y[1] = VT2[1] - VG2X[1];
+    VG2Y[2] = VT2[2] - VG2X[2];
+
+    sg2 = (VG2X[0]*G1[0]+VG2X[1]*G1[1]+VG2X[2]*G1[2]);
+    VG2X[0] = sg2 * G1[0];
+    VG2X[1] = sg2 * G1[1];
+    VG2X[2] = sg2 * G1[2];
+
+    //components among Normal
+    float st1 = (VG1X[0]*N2[0]+VG1X[1]*N2[1]+VG1X[2]*N2[2]);
+    VT1X[0] = st1 * N2[0];
+    VT1X[1] = st1 * N2[1];
+    VT1X[2] = st1 * N2[2];
+    VT1Y[0] = VG1X[0] - VT1X[0];
+    VT1Y[1] = VG1X[1] - VT1X[1];
+    VT1Y[2] = VG1X[2] - VT1X[2];
+
+    float st2 = (VG2X[0]*N2[0]+VG2X[1]*N2[1]+VG2X[2]*N2[2]);
+    VT2X[0] = st2 * N2[0];
+    VT2X[1] = st2 * N2[1];
+    VT2X[2] = st2 * N2[2];
+    VT2Y[0] = VG2X[0] - VT2X[0];
+    VT2Y[1] = VG2X[1] - VT2X[1];
+    VT2Y[2] = VG2X[2] - VT2X[2];
+
+    float sr1 = (VR1[0]*N2[0]+VR1[1]*N2[1]+VR1[2]*N2[2]);
+    VR1Y[0] = VR1[0] - sr1 * N2[0];
+    VR1Y[1] = VR1[1] - sr1 * N2[1];
+    VR1Y[2] = VR1[2] - sr1 * N2[2];
+    VR1X[0] = sr1 * N2[0];
+    VR1X[1] = sr1 * N2[1];
+    VR1X[2] = sr1 * N2[2];
+
+    float sr2 = (VR2[0]*N1[0]+VR2[1]*N1[1]+VR2[2]*N1[2]);
+    VR2Y[0] = VR2[0] - sr2 * N1[0];
+    VR2Y[1] = VR2[1] - sr2 * N1[1];
+    VR2Y[2] = VR2[2] - sr2 * N1[2];
+    VR2X[0] = sr2 * N1[0];
+    VR2X[1] = sr2 * N1[1];
+    VR2X[2] = sr2 * N1[2];
 
     // translation impact
-    float e1 = o1->m / (o1->m + o2->m);
-    float e2 = o2->m / (o1->m + o2->m);
-    float f = e2 * (s2 - s1) * o1->elasticity + e1 * s1 + e2 * s2;
-    float resistance = (1.0f-o1->friction*o2->friction);
-    V1X[0] = s1 * N[0];
-    V1X[1] = s1 * N[1];
-    V1X[2] = s1 * N[2];
-    V1Y[0] = V1[0] - s1 * N[0];
-    V1Y[1] = V1[1] - s1 * N[1];
-    V1Y[2] = V1[2] - s1 * N[2];
+    if(sg1 <= sg2) {
+        // impact on translation
+        float e1 = o1->m / (o1->m + o2->m);
+        float e2 = o2->m / (o1->m + o2->m);
+        float f = e2 * (sg2 - sg1) * o1->elasticity + e1 * sg1 + e2 * sg2;
+        float resistance = (1.0f - o1->friction * o2->friction);
 
-    VOUT[0] = f*N[0] + resistance*V1Y[0];
-    VOUT[1] = f*N[1] + resistance*V1Y[1];
-    VOUT[2] = f*N[2] + resistance*V1Y[2];
+        VOUT[0] = f * G1[0] + resistance*VG1Y[0];
+        VOUT[1] = f * G1[1] + resistance*VG1Y[1];
+        VOUT[2] = f * G1[2] + resistance*VG1Y[2];
 
+        // impact on rotation
+        VP[0] = G1[1] * VG1Y[2] - G1[2] * VG1Y[1];
+        VP[1] = G1[2] * VG1Y[0] - G1[0] * VG1Y[2];
+        VP[2] = G1[0] * VG1Y[1] - G1[1] * VG1Y[0];
 
+        RA[0] = RA[0] + VP[0]/lg1;
+        RA[1] = RA[1] + VP[1]/lg1;
+        RA[2] = RA[2] + VP[2]/lg1;
+
+        return(1);
+    } else
     // rotation impact
-    G[0] = o1->rotationcenter[0] - ccc[0];
-    G[1] = o1->rotationcenter[1] - ccc[1];
-    G[2] = o1->rotationcenter[2] - ccc[2];
-    lg=(float) sqrt(G[0]*G[0]+G[1]*G[1]+G[2]*G[2]);
-    if (lg < 0.0000001) {
-            return;
-        }
-    G[0] = G[0]/lg;
-    G[1] = G[1]/lg;
-    G[2] = G[2]/lg;
-    VR[0] = e2*V1X[0] + e2*0.2f*V1Y[0];
-    VR[1] = e2*V1X[1] + e2*0.2f*V1Y[1];
-    VR[2] = e2*V1X[2] + e2*0.2f*V1Y[2];
+    if(sr1 <= 0) {
+        float resistance = (1.0f - o1->friction * o2->friction);
+        VR[0] = o1->elasticity * VR1X[0] + resistance*VR1Y[0];
+        VR[1] = o1->elasticity * VR1X[1] + resistance*VR1Y[1];
+        VR[2] = o1->elasticity * VR1X[2] + resistance*VR1Y[2];
 
-    VP[0] = G[1]*VR[2]-G[2]*VR[1];
-    VP[1] = G[2]*VR[0]-G[0]*VR[2];
-    VP[2] = G[0]*VR[1]-G[1]*VR[0];
-    lvp=(float) sqrt(VP[0]*VP[0]+VP[1]*VP[1]+VP[2]*VP[2]);
+        VP[0] = G1[1] * VR[2] - G1[2] * VR[1];
+        VP[1] = G1[2] * VR[0] - G1[0] * VR[2];
+        VP[2] = G1[0] * VR[1] - G1[1] * VR[0];
 
-    if(lvp > 0.0000001f) {
-        VP[0] = (VP[0]/lg) * 180.0f / 3.1415926f;;
-        VP[1] = (VP[1]/lg) * 180.0f / 3.1415926f;;
-        VP[2] = (VP[2]/lg) * 180.0f / 3.1415926f;;
-        RA[0] = RA[0]*resistance+VP[0];
-        RA[1] = RA[1]*resistance+VP[1];
-        RA[2] = RA[2]*resistance+VP[2];
-        memcpy(RC, ccc, sizeof(o1->rotationcenter));
+        RA[0] += VP[0]/lg1;
+        RA[1] += VP[1]/lg1;
+        RA[2] += VP[2]/lg1;
+        return(1);
     }
+    return(0);
 }
-
 
 void collision(NativeObject *o1, NativeObject *o2) {
     float zero[] = {0.0f, 0.0f, 0.0f};
@@ -389,7 +508,7 @@ void collision(NativeObject *o1, NativeObject *o2) {
     edgecollision(o1, ct1l, ct1, o2, ct2l, ct2);
 }
 
-void physics(Impact *fimpact) {
+int physics(Impact *fimpact) {
     float VO1[3];
     float PS1[3];
     float RA1[3];
@@ -400,11 +519,13 @@ void physics(Impact *fimpact) {
     float RA2[3];
     float RS2;
     float RC2[3];
+    __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "--------------------------------O1------%d\n",fimpact->o1);
+    __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "--------------------------------O2------%d\n",fimpact->o2);
 
-    impact(fimpact->o1, fimpact->o2, &fimpact->o2->mvnormals[4 * fimpact->nid2], VO1, RA1, &RS1, RC1,fimpact->point);
-    impact(fimpact->o2, fimpact->o1, &fimpact->o1->mvnormals[4 * fimpact->nid1], VO2, RA2, &RS2, RC2,fimpact->point);
+    impact(fimpact->o1, fimpact->o2, &fimpact->o1->mvnormals[4 * fimpact->nid1], &fimpact->o2->mvnormals[4 * fimpact->nid2], VO1, RA1, &RS1, RC1,fimpact->point);
+    impact(fimpact->o2, fimpact->o1, &fimpact->o2->mvnormals[4 * fimpact->nid2], &fimpact->o1->mvnormals[4 * fimpact->nid1], VO2, RA2, &RS2, RC2,fimpact->point);
 
-    RS1 = (float) sqrt(RA1[0]*RA1[0]+RA1[1]*RA1[1]+RA1[2]*RA1[2]);
+    RS1 = (float) sqrt(RA1[0]*RA1[0]+RA1[1]*RA1[1]+RA1[2]*RA1[2]) * (180.0/3.14926);
     if(RS1 < 0.001f){
         RA1[0] = 0.0f;
         RA1[1] = 0.0f;
@@ -412,19 +533,17 @@ void physics(Impact *fimpact) {
         RS1= 0.0f;
     }
 
-    fimpact->o1->positionspeed[0] = VO1[0];
-    fimpact->o1->positionspeed[1] = VO1[1];
-    fimpact->o1->positionspeed[2] = 0.0f;//VO1[2];
-    fimpact->o1->rotationspeed = RS1;
-    fimpact->o1->rotationaxis[0] = 0.0f;//RA1[0];
-    fimpact->o1->rotationaxis[1] = 0.0f;//RA1[1];
-    fimpact->o1->rotationaxis[2] = RA1[2];
-    fimpact->o1->rotationcenter[0] = RC1[0];
-    fimpact->o1->rotationcenter[1] = RC1[1];
-    fimpact->o1->rotationcenter[2] = RC1[2];
+    __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "--------------------------------O1------%d\n",fimpact->o1);
+    fimpact->o1->positionspeed[0] = (jfloat)VO1[0];
+    fimpact->o1->positionspeed[1] = (jfloat)VO1[1];
+    fimpact->o1->positionspeed[2] = (jfloat)VO1[2];
+    fimpact->o1->rotationaxis[0]  = (jfloat)RA1[0];
+    fimpact->o1->rotationaxis[1]  = (jfloat)RA1[1];
+    fimpact->o1->rotationaxis[2]  = (jfloat)RA1[2];
+    fimpact->o2->rotationspeed    = (jfloat)RS1;
 
 
-    RS2 = (float) sqrt(RA2[0]*RA2[0]+RA2[1]*RA2[1]+RA2[2]*RA2[2]);
+    RS2 = (float) sqrt(RA2[0]*RA2[0]+RA2[1]*RA2[1]+RA2[2]*RA2[2]) * (180.0/3.14926);
     if(RS2 < 0.001f){
         RA2[0] = 0.0f;
         RA2[1] = 0.0f;
@@ -432,16 +551,15 @@ void physics(Impact *fimpact) {
         RS2= 0.0f;
     }
 
-    fimpact->o2->positionspeed[0] = VO2[0];
-    fimpact->o2->positionspeed[1] = VO2[1];
-    fimpact->o2->positionspeed[2] = 0.0f;//VO2[2];
-    fimpact->o2->rotationspeed = RS2;
-    fimpact->o2->rotationaxis[0] = 0.0f;//RA2[0];
-    fimpact->o2->rotationaxis[1] = 0.0f;//RA2[1];
-    fimpact->o2->rotationaxis[2] = RA2[2];
-    fimpact->o2->rotationcenter[0] = RC2[0];
-    fimpact->o2->rotationcenter[1] = RC2[1];
-    fimpact->o2->rotationcenter[2] = RC2[2];
+    __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "--------------------------------O2------%d\n",fimpact->o2);
+    fimpact->o2->positionspeed[0] = (jfloat)VO2[0];
+    fimpact->o2->positionspeed[1] = (jfloat)VO2[1];
+    fimpact->o2->positionspeed[2] = (jfloat)VO2[2];
+    fimpact->o2->rotationaxis[0]  = (jfloat)RA2[0];
+    fimpact->o2->rotationaxis[1]  = (jfloat)RA2[1];
+    fimpact->o2->rotationaxis[2]  = (jfloat)RA2[2];
+    fimpact->o2->rotationspeed    = (jfloat)RS2;
+    return(1);
 }
 
 void collision() {
@@ -453,7 +571,7 @@ void collision() {
     gnbimpact=0;
     for (i=0;i<objects.size();i++) {
         o1 = objects[i];
-        for (j = 0; j < objects.size(); j++) {
+        for (j = i; j < objects.size(); j++) {
             o2 = objects[j];
             if (o1 != o2) {
                 collision(o1, o2);
@@ -462,8 +580,11 @@ void collision() {
     }
 
     // then compute collision
+    // equilibrium law : do this until there is no more shock
+    //for(j=0;j<10;j++) // 10 times max
     for (i=0;i<gnbimpact;i++) {
-        physics(&gimpacts[i]);
+        __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "--------------------------------------%d\n",i);
+            physics(&gimpacts[i]);
     }
 }
 
