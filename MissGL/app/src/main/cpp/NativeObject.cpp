@@ -11,8 +11,8 @@
 
 std::vector <NativeObject *> objects;
 std::map<std::string, NativeObject *> hmap;
-Impact gimpacts[10000];
-unsigned int gnbimpact=0;
+Cloud gcloud[1000];
+unsigned int gnbpoint=0;
 
 void getpositionspeed(const char *n, jfloat *positionspeed, int size) {
     NativeObject *o = hmap[std::string(n)];
@@ -169,18 +169,17 @@ bool pointinsidetriangle(float *p, float *t) {
     return(true);
 }
 
-void addimpact(NativeObject *o1,int idi,NativeObject *o2,int idj,float *cc) {
-    int i;
-    gimpacts[gnbimpact].point[0] = cc[0];
-    gimpacts[gnbimpact].point[1] = cc[1];
-    gimpacts[gnbimpact].point[2] = cc[2];
-    gimpacts[gnbimpact].nid1 = idi;
-    gimpacts[gnbimpact].o1 = o1;
-    gimpacts[gnbimpact].nid2 = idj;
-    gimpacts[gnbimpact].o2 = o2;
-    gnbimpact++;
-    o1->collision = true;
-    o2->collision = true;
+void addimpact(float *cc,float *n1, float *n2) {
+    gcloud[gnbpoint].point[0] = cc[0];
+    gcloud[gnbpoint].point[1] = cc[1];
+    gcloud[gnbpoint].point[2] = cc[2];
+    gcloud[gnbpoint].normal1[0] = n1[0];
+    gcloud[gnbpoint].normal1[1] = n1[1];
+    gcloud[gnbpoint].normal1[2] = n1[2];
+    gcloud[gnbpoint].normal2[0] = n2[0];
+    gcloud[gnbpoint].normal2[1] = n2[1];
+    gcloud[gnbpoint].normal2[2] = n2[2];
+    gnbpoint++;
 }
 
 void edgecollision(NativeObject *o1, int ct1l, int *ct1, NativeObject *o2, int ct2l, int *ct2){
@@ -211,32 +210,32 @@ void edgecollision(NativeObject *o1, int ct1l, int *ct1, NativeObject *o2, int c
                 if((d1 < r2[idj]) && (d2 < r1[idi])) {
                     if(edgetrianglecollision(v1+idi*12,v1+idi*12+4,c2+idj*4,n2+idj*4, cc)) {
                         if(pointinsidetriangle(cc, v2 + idj * 12)) {
-                            addimpact(o1,idi,o2,idj,cc);
+                            addimpact(cc,o1->mvnormals+4*idi,o2->mvnormals+4*idj);
                         }
                     }
                     if(edgetrianglecollision(v1+idi*12,v1+idi*12+8,c2+idj*4,n2+idj*4, cc)) {
                         if(pointinsidetriangle(cc, v2 + idj * 12)) {
-                            addimpact(o1,idi,o2,idj,cc);
+                            addimpact(cc,o1->mvnormals+4*idi,o2->mvnormals+4*idj);
                         }
                     }
                     if(edgetrianglecollision(v1+idi*12+8,v1+idi*12+4,c2+idj*4,n2+idj*4, cc)) {
                         if(pointinsidetriangle(cc, v2 + idj * 12)) {
-                            addimpact(o1,idi,o2,idj,cc);
+                            addimpact(cc,o1->mvnormals+4*idi,o2->mvnormals+4*idj);
                         }
                     }
                     if(edgetrianglecollision(v2+idj*12,v2+idj*12+4,c1+idi*4,n1+idi*4, cc)) {
                         if(pointinsidetriangle(cc, v1 + idi * 12)) {
-                            addimpact(o1,idi,o2,idj,cc);
+                            addimpact(cc,o1->mvnormals+4*idi,o2->mvnormals+4*idj);
                         }
                     }
                     if(edgetrianglecollision(v2+idj*12,v2+idj*12+8,c1+idi*4,n1+idi*4, cc)) {
                         if(pointinsidetriangle(cc, v1 + idi * 12)) {
-                            addimpact(o1,idi,o2,idj,cc);
+                            addimpact(cc,o1->mvnormals+4*idi,o2->mvnormals+4*idj);
                         }
                     }
                     if(edgetrianglecollision(v2+idj*12+8,v2+idj*12+4,c1+idi*4,n1+idi*4, cc)) {
                         if(pointinsidetriangle(cc, v1 + idi * 12)) {
-                            addimpact(o1,idi,o2,idj,cc);
+                            addimpact(cc,o1->mvnormals+4*idi,o2->mvnormals+4*idj);
                         }
                     }
                 }
@@ -245,9 +244,8 @@ void edgecollision(NativeObject *o1, int ct1l, int *ct1, NativeObject *o2, int c
     }
 }
 
-int impact(NativeObject *o1, NativeObject *o2, float *n1, float *n2, float *VOUT, float *RA, float *RS, float *RC, float *ccc) {
+int impact(NativeObject *o1, NativeObject *o2, float *n1, float *VOUT, float *RA, float *RS, float *RC, float *ccc) {
     float R1[3];
-    float R2[3];
     float G1[3];
     float G2[3];
     float VR[3];
@@ -272,9 +270,9 @@ int impact(NativeObject *o1, NativeObject *o2, float *n1, float *n2, float *VOUT
     float VR1Y[3];
     float VR2Y[3];
     float N1[3];
-    float N2[3];
     float VP[3];
     float VP1[3];
+    float s;
     float coef1,coef2;
     float lv1,lg1,lg2,ln,lvp;
     memcpy(VT1, o1->positionspeed, sizeof(VT1));
@@ -285,166 +283,89 @@ int impact(NativeObject *o1, NativeObject *o2, float *n1, float *n2, float *VOUT
     VOUT[0] = VT1[0];
     VOUT[1] = VT1[1];
     VOUT[2] = VT1[2];
+    N1[0] = n1[0];
+    N1[1] = n1[1];
+    N1[2] = n1[2];
 
     if((o1->m==0.0f) || (o1->m>=1000000.0f))
         return(0);
 
-    ln=(float) sqrt(n1[0]*n1[0]+n1[1]*n1[1]+n1[2]*n1[2]);
-    if(ln > 0.0000001) {
-        N1[0] = n1[0] / ln;
-        N1[1] = n1[1] / ln;
-        N1[2] = n1[2] / ln;
-    }
+    __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "----oOOOOOOOOOOOOOOo------%f , %f, %f\n",N1[0],N1[1],N1[2]);
 
-    ln=(float) sqrt(n2[0]*n2[0]+n2[1]*n2[1]+n2[2]*n2[2]);
-    if(ln > 0.0000001) {
-        N2[0] = n2[0] / ln;
-        N2[1] = n2[1] / ln;
-        N2[2] = n2[2] / ln;
-    }
+    // speed among normal
+    float st1 = (VT1[0]*N1[0]+VT1[1]*N1[1]+VT1[2]*N1[2]);
+    VT1X[0] = st1 * N1[0];
+    VT1X[1] = st1 * N1[1];
+    VT1X[2] = st1 * N1[2];
+    VT1Y[0] = VT1[0] - VT1X[0];
+    VT1Y[1] = VT1[1] - VT1X[1];
+    VT1Y[2] = VT1[2] - VT1X[2];
 
-    // first get the speed vector at the impact (rotation + translation)
-    __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "--------------------------------O1------%d\n",o1);
-    R1[0] = o1->mvbarycenter[0] - ccc[0];
-    R1[1] = o1->mvbarycenter[1] - ccc[1];
-    R1[2] = o1->mvbarycenter[2] - ccc[2];
-    VR1[0] = R1[1]*o1->rotationaxis[2]-R1[2]*o1->rotationaxis[1];
-    VR1[1] = R1[2]*o1->rotationaxis[0]-R1[0]*o1->rotationaxis[2];
-    VR1[2] = R1[0]*o1->rotationaxis[1]-R1[1]*o1->rotationaxis[0];
-    G1[0] = o1->mvbarycenter[0] - ccc[0];
-    G1[1] = o1->mvbarycenter[1] - ccc[1];
-    G1[2] = o1->mvbarycenter[2] - ccc[2];
+    float st2 = (VT2[0]*N1[0]+VT2[1]*N1[1]+VT2[2]*N1[2]);
+    VT2X[0] = st2 * N1[0];
+    VT2X[1] = st2 * N1[1];
+    VT2X[2] = st2 * N1[2];
+    VT2Y[0] = VT2[0] - VT2X[0];
+    VT2Y[1] = VT2[1] - VT2X[1];
+    VT2Y[2] = VT2[2] - VT2X[2];
+
+    // X speed among G1 and G2
+    G1[0] = ccc[0] - o1->mvbarycenter[0];
+    G1[1] = ccc[1] - o1->mvbarycenter[1];
+    G1[2] = ccc[2] - o1->mvbarycenter[2];
     lg1=(float) sqrt(G1[0]*G1[0]+G1[1]*G1[1]+G1[2]*G1[2]);
-    if(lg1 > 0.001) {
-        G1[0] = G1[0] / lg1;
-        G1[1] = G1[1] / lg1;
-        G1[2] = G1[2] / lg1;
-        VR1[0] = VR1[0] / lg1;
-        VR1[1] = VR1[1] / lg1;
-        VR1[2] = VR1[2] / lg1;
-    } else {
-        G1[0] = 0;
-        G1[1] = 0;
-        G1[2] = 0;
-        VR1[0] = 0;
-        VR1[1] = 0;
-        VR1[2] = 0;
-    }
+    G1[0] = G1[0] / lg1;
+    G1[1] = G1[1] / lg1;
+    G1[2] = G1[2] / lg1;
+    coef1 = fabs(G1[0]*N1[0] + G1[1]*N1[1] +G1[2]*N1[2]);
 
-    R2[0] = o2->mvbarycenter[0] - ccc[0];
-    R2[1] = o2->mvbarycenter[1] - ccc[1];
-    R2[2] = o2->mvbarycenter[2] - ccc[2];
-    VR2[0] = R2[1]*o2->rotationaxis[2]-R2[2]*o2->rotationaxis[1];
-    VR2[1] = R2[2]*o2->rotationaxis[0]-R2[0]*o2->rotationaxis[2];
-    VR2[2] = R2[0]*o2->rotationaxis[1]-R2[1]*o2->rotationaxis[0];
-    G2[0] = o2->mvbarycenter[0] - ccc[0];
-    G2[1] = o2->mvbarycenter[1] - ccc[1];
-    G2[2] = o2->mvbarycenter[2] - ccc[2];
+    G2[0] = ccc[0] - o2->mvbarycenter[0];
+    G2[1] = ccc[1] - o2->mvbarycenter[1];
+    G2[2] = ccc[2] - o2->mvbarycenter[2];
     lg2=(float) sqrt(G2[0]*G2[0]+G2[1]*G2[1]+G2[2]*G2[2]);
-    if(lg2 > 0.0000001) {
-        G2[0] = G2[0] / lg2;
-        G2[1] = G2[1] / lg2;
-        G2[2] = G2[2] / lg2;
-    } else {
-        G2[0] = 0;
-        G2[1] = 0;
-        G2[2] = 0;
-    }
+    G2[0] = G2[0] / lg2;
+    G2[1] = G2[1] / lg2;
+    G2[2] = G2[2] / lg2;
+    coef2 = fabs(G2[0]*N1[0] + G2[1]*N1[1] +G2[2]*N1[2]);
 
-    //components among G
-    float sg1 = (VT1[0]*G1[0]+VT1[1]*G1[1]+VT1[2]*G1[2]);
-    VG1X[0] = sg1 * G1[0];
-    VG1X[1] = sg1 * G1[1];
-    VG1X[2] = sg1 * G1[2];
-    VG1Y[0] = VT1[0] - VG1X[0];
-    VG1Y[1] = VT1[1] - VG1X[1];
-    VG1Y[2] = VT1[2] - VG1X[2];
-
-    float sg2 = (VT2[0]*G2[0]+VT2[1]*G2[1]+VT2[2]*G2[2]);
-    VG2X[0] = sg2 * G2[0];
-    VG2X[1] = sg2 * G2[1];
-    VG2X[2] = sg2 * G2[2];
-    VG2Y[0] = VT2[0] - VG2X[0];
-    VG2Y[1] = VT2[1] - VG2X[1];
-    VG2Y[2] = VT2[2] - VG2X[2];
-
-    sg2 = (VG2X[0]*G1[0]+VG2X[1]*G1[1]+VG2X[2]*G1[2]);
-    VG2X[0] = sg2 * G1[0];
-    VG2X[1] = sg2 * G1[1];
-    VG2X[2] = sg2 * G1[2];
-
-    //components among Normal
-    float st1 = (VG1X[0]*N2[0]+VG1X[1]*N2[1]+VG1X[2]*N2[2]);
-    VT1X[0] = st1 * N2[0];
-    VT1X[1] = st1 * N2[1];
-    VT1X[2] = st1 * N2[2];
-    VT1Y[0] = VG1X[0] - VT1X[0];
-    VT1Y[1] = VG1X[1] - VT1X[1];
-    VT1Y[2] = VG1X[2] - VT1X[2];
-
-    float st2 = (VG2X[0]*N2[0]+VG2X[1]*N2[1]+VG2X[2]*N2[2]);
-    VT2X[0] = st2 * N2[0];
-    VT2X[1] = st2 * N2[1];
-    VT2X[2] = st2 * N2[2];
-    VT2Y[0] = VG2X[0] - VT2X[0];
-    VT2Y[1] = VG2X[1] - VT2X[1];
-    VT2Y[2] = VG2X[2] - VT2X[2];
-
-    float sr1 = (VR1[0]*N2[0]+VR1[1]*N2[1]+VR1[2]*N2[2]);
-    VR1Y[0] = VR1[0] - sr1 * N2[0];
-    VR1Y[1] = VR1[1] - sr1 * N2[1];
-    VR1Y[2] = VR1[2] - sr1 * N2[2];
-    VR1X[0] = sr1 * N2[0];
-    VR1X[1] = sr1 * N2[1];
-    VR1X[2] = sr1 * N2[2];
-
-    float sr2 = (VR2[0]*N1[0]+VR2[1]*N1[1]+VR2[2]*N1[2]);
-    VR2Y[0] = VR2[0] - sr2 * N1[0];
-    VR2Y[1] = VR2[1] - sr2 * N1[1];
-    VR2Y[2] = VR2[2] - sr2 * N1[2];
-    VR2X[0] = sr2 * N1[0];
-    VR2X[1] = sr2 * N1[1];
-    VR2X[2] = sr2 * N1[2];
+    st1 *= coef1;
+    st2 *= coef2;
 
     // translation impact
-    if(sg1 <= sg2) {
-        // impact on translation
+    if(st1 <= st2) {
         float e1 = o1->m / (o1->m + o2->m);
         float e2 = o2->m / (o1->m + o2->m);
-        float f = e2 * (sg2 - sg1) * o1->elasticity + e1 * sg1 + e2 * sg2;
-        float resistance = (1.0f - o1->friction * o2->friction);
+        float f = e2 * (st2 - st1) * o1->elasticity + e1 * st1 + e2 * st2;
+        float friction = o1->friction;
+        float resistance = (1.0f - friction);
 
-        VOUT[0] = f * G1[0] + resistance*VG1Y[0];
-        VOUT[1] = f * G1[1] + resistance*VG1Y[1];
-        VOUT[2] = f * G1[2] + resistance*VG1Y[2];
+        VOUT[0] = f * N1[0] + resistance*VT1Y[0];
+        VOUT[1] = f * N1[1] + resistance*VT1Y[1];
+        VOUT[2] = f * N1[2] + resistance*VT1Y[2];
 
         // impact on rotation
-        VP[0] = G1[1] * VG1Y[2] - G1[2] * VG1Y[1];
-        VP[1] = G1[2] * VG1Y[0] - G1[0] * VG1Y[2];
-        VP[2] = G1[0] * VG1Y[1] - G1[1] * VG1Y[0];
+        VP[0] = G1[1] * VT1Y[2] - G1[2] * VT1Y[1];
+        VP[1] = G1[2] * VT1Y[0] - G1[0] * VT1Y[2];
+        VP[2] = G1[0] * VT1Y[1] - G1[1] * VT1Y[0];
 
-        RA[0] = RA[0] + VP[0]/lg1;
-        RA[1] = RA[1] + VP[1]/lg1;
-        RA[2] = RA[2] + VP[2]/lg1;
+        R1[0] = - VP[0]*friction;
+        R1[1] = - VP[1]*friction;
+        R1[2] = - VP[2]*friction;
 
-        return(1);
-    } else
-    // rotation impact
-    if(sr1 <= 0) {
-        float resistance = (1.0f - o1->friction * o2->friction);
-        VR[0] = o1->elasticity * VR1X[0] + resistance*VR1Y[0];
-        VR[1] = o1->elasticity * VR1X[1] + resistance*VR1Y[1];
-        VR[2] = o1->elasticity * VR1X[2] + resistance*VR1Y[2];
+        // rotation impact on translation
+        VR1[0] = (G1[1] * RA[2] - G1[2] * RA[1]) * friction * (3.1415926f/180.0f) * lg1;
+        VR1[1] = (G1[2] * RA[0] - G1[0] * RA[2]) * friction * (3.1415926f/180.0f) * lg1;
+        VR1[2] = (G1[0] * RA[1] - G1[1] * RA[0]) * friction * (3.1415926f/180.0f) * lg1;
 
-        VP[0] = G1[1] * VR[2] - G1[2] * VR[1];
-        VP[1] = G1[2] * VR[0] - G1[0] * VR[2];
-        VP[2] = G1[0] * VR[1] - G1[1] * VR[0];
+        VOUT[0] += VR1[0];
+        VOUT[1] += VR1[1];
+        VOUT[2] += VR1[2];
 
-        RA[0] += VP[0]/lg1;
-        RA[1] += VP[1]/lg1;
-        RA[2] += VP[2]/lg1;
-        return(1);
+        RA[0] = resistance * (RA[0] + R1[0]*(180.0f/3.1415926f)/lg1);
+        RA[1] = resistance * (RA[1] + R1[1]*(180.0f/3.1415926f)/lg1);
+        RA[2] = resistance * (RA[2] + R1[2]*(180.0f/3.1415926f)/lg1);
     }
+
     return(0);
 }
 
@@ -522,11 +443,11 @@ int physics(Impact *fimpact) {
     __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "--------------------------------O1------%d\n",fimpact->o1);
     __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "--------------------------------O2------%d\n",fimpact->o2);
 
-    impact(fimpact->o1, fimpact->o2, &fimpact->o1->mvnormals[4 * fimpact->nid1], &fimpact->o2->mvnormals[4 * fimpact->nid2], VO1, RA1, &RS1, RC1,fimpact->point);
-    impact(fimpact->o2, fimpact->o1, &fimpact->o2->mvnormals[4 * fimpact->nid2], &fimpact->o1->mvnormals[4 * fimpact->nid1], VO2, RA2, &RS2, RC2,fimpact->point);
+    impact(fimpact->o1, fimpact->o2, fimpact->normal2, VO1, RA1, &RS1, RC1, fimpact->point);
+    impact(fimpact->o2, fimpact->o1, fimpact->normal1, VO2, RA2, &RS2, RC2, fimpact->point);
 
-    RS1 = (float) sqrt(RA1[0]*RA1[0]+RA1[1]*RA1[1]+RA1[2]*RA1[2]) * (180.0/3.14926);
-    if(RS1 < 0.001f){
+    RS1 = (float) sqrt(RA1[0]*RA1[0]+RA1[1]*RA1[1]+RA1[2]*RA1[2]);
+    if(RS1 < 1.0f){
         RA1[0] = 0.0f;
         RA1[1] = 0.0f;
         RA1[2] = 0.0001f;
@@ -540,11 +461,12 @@ int physics(Impact *fimpact) {
     fimpact->o1->rotationaxis[0]  = (jfloat)RA1[0];
     fimpact->o1->rotationaxis[1]  = (jfloat)RA1[1];
     fimpact->o1->rotationaxis[2]  = (jfloat)RA1[2];
-    fimpact->o2->rotationspeed    = (jfloat)RS1;
+    fimpact->o1->rotationspeed    = (jfloat)RS1;
 
 
-    RS2 = (float) sqrt(RA2[0]*RA2[0]+RA2[1]*RA2[1]+RA2[2]*RA2[2]) * (180.0/3.14926);
-    if(RS2 < 0.001f){
+    RS2 = (float) sqrt(RA2[0]*RA2[0]+RA2[1]*RA2[1]+RA2[2]*RA2[2]);
+
+    if(RS2 < 1.0f){
         RA2[0] = 0.0f;
         RA2[1] = 0.0f;
         RA2[2] = 0.0001f;
@@ -563,9 +485,16 @@ int physics(Impact *fimpact) {
 }
 
 void collision() {
+    Impact gimpacts[100];
+    unsigned int gnbimpact=0;
     NativeObject *o1;
     NativeObject *o2;
     int i,j,k;
+    jfloat g[3];
+    jfloat n1[3];
+    jfloat n2[3];
+    jfloat l1;
+    jfloat l2;
 
     // first generate all impacts
     gnbimpact=0;
@@ -573,15 +502,49 @@ void collision() {
         o1 = objects[i];
         for (j = i; j < objects.size(); j++) {
             o2 = objects[j];
-            if (o1 != o2) {
-                collision(o1, o2);
+            if(o2==o1)
+                continue;
+            gnbpoint=0;
+            collision(o1, o2);
+            if(gnbpoint<1)
+                continue;
+            g[0] = g[1] = g[2] = 0.0f;
+            n1[0] = n1[1] = n1[2] = 0.0f;
+            n2[0] = n2[1] = n2[2] = 0.0f;
+            for(k=0;k<gnbpoint;k++) {
+                g[0] += gcloud[k].point[0];
+                g[1] += gcloud[k].point[1];
+                g[2] += gcloud[k].point[2];
+                n1[0] += gcloud[k].normal1[0];
+                n1[1] += gcloud[k].normal1[1];
+                n1[2] += gcloud[k].normal1[2];
+                n2[0] += gcloud[k].normal2[0];
+                n2[1] += gcloud[k].normal2[1];
+                n2[2] += gcloud[k].normal2[2];
             }
+            gimpacts[gnbimpact].o1 = o1;
+            gimpacts[gnbimpact].o2 = o2;
+            gimpacts[gnbimpact].point[0] = g[0]/gnbpoint;
+            gimpacts[gnbimpact].point[1] = g[1]/gnbpoint;
+            gimpacts[gnbimpact].point[2] = g[2]/gnbpoint;
+            l1=(float) sqrt(n1[0]*n1[0]+n1[1]*n1[1]+n1[2]*n1[2]);
+            l2=(float) sqrt(n2[0]*n2[0]+n2[1]*n2[1]+n2[2]*n2[2]);
+
+            gimpacts[gnbimpact].normal1[0] = n1[0]/l1;
+            gimpacts[gnbimpact].normal1[1] = n1[1]/l1;
+            gimpacts[gnbimpact].normal1[2] = n1[2]/l1;
+            gimpacts[gnbimpact].normal2[0] = n2[0]/l2;
+            gimpacts[gnbimpact].normal2[1] = n2[1]/l2;
+            gimpacts[gnbimpact].normal2[2] = n2[2]/l2;
+            o1->collision = true;
+            o2->collision = true;
+            gnbimpact++;
         }
     }
 
     // then compute collision
     // equilibrium law : do this until there is no more shock
-    //for(j=0;j<10;j++) // 10 times max
+    for(j=0;j<4;j++) // 10 times max
     for (i=0;i<gnbimpact;i++) {
         __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "--------------------------------------%d\n",i);
             physics(&gimpacts[i]);

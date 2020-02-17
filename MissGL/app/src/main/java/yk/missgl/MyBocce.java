@@ -197,8 +197,8 @@ public class MyBocce extends MISScene  {
                         if (dt == 0) break;
                         speed = (float) (1000000000.0f / dt / 500.0f);
                         rotationaxis[0] =  -dy;
-                        rotationaxis[1] =  dx;
-                        rotationaxis[2] = 0.0f;
+                        rotationaxis[1] =  0.0f;
+                        rotationaxis[2] =  dx;
                         getobject(ballname).rotationaxis(rotationaxis);
                         getobject(ballname).rotspeed(l);
                         return("stategame");

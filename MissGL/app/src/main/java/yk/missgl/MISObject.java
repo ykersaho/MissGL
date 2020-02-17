@@ -301,6 +301,7 @@ public class MISObject {
         rotationaxis[0] = x;
         rotationaxis[1] = y;
         rotationaxis[2] = z;
+        rotationspeed = (float) Math.sqrt(rotationaxis[0]*rotationaxis[0]+rotationaxis[1]*rotationaxis[1]+rotationaxis[2]*rotationaxis[2]);
         updatematrix();
         t0 = System.nanoTime();
     }
@@ -342,7 +343,6 @@ public class MISObject {
         Matrix.setIdentityM(mMotionMatrix, 0);
         Matrix.translateM(mMotionMatrix, 0, positionspeed[0] * dt, positionspeed[1] * dt, positionspeed[2] * dt);
         Matrix.translateM(mMotionMatrix, 0, rotationcenter[0], rotationcenter[1], rotationcenter[2]);
-        //float rs = rotationspeed * (float) Math.sqrt(rotationaxis[0]*rotationaxis[0]+rotationaxis[1]*rotationaxis[1]+rotationaxis[2]*rotationaxis[2]);
         Matrix.rotateM(mMotionMatrix, 0, rotationspeed * dt, rotationaxis[0], rotationaxis[1], rotationaxis[2]);
         Matrix.translateM(mMotionMatrix, 0, -rotationcenter[0], -rotationcenter[1], -rotationcenter[2]);
         Matrix.multiplyMM(mModelMatrix, 0, mMotionMatrix, 0, mModelMatrix, 0);        //Matrix.translateM(mModelMatrix, 0, rotationcenter[0], rotationcenter[1], rotationcenter[2]);
@@ -426,7 +426,7 @@ public class MISObject {
         glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 
         // shadow
-/*        if((m <1000000.0f) && (m > 0)) {
+        if((m <1000000.0f) && (m > 0)) {
             // Pass the projection and view transformation to the shader
             Matrix.multiplyMM(mvmatrix, 0, shadowmatrix, 0, mModelMatrix, 0);
             Matrix.multiplyMM(mvmatrix, 0, viewMatrix, 0, mvmatrix, 0);
@@ -440,7 +440,7 @@ public class MISObject {
             // Draw the triangle
             glDrawArrays(GL_TRIANGLES, 0, vertexCount);
         }
-*/
+
         // Disable vertex array
         glDisableVertexAttribArray(shader.mPositionHandle);
         glDisableVertexAttribArray(shader.mNormalHandle);

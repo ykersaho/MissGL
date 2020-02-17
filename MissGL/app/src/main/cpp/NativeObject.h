@@ -57,8 +57,15 @@ class Impact {
 public:
     NativeObject *o1;
     NativeObject *o2;
-    jint nid1;
-    jint nid2;
+    jfloat normal1[3];
+    jfloat normal2[3];
+    jfloat point[3];
+};
+
+class Cloud {
+public:
+    jfloat normal1[3];
+    jfloat normal2[3];
     jfloat point[3];
 };
 

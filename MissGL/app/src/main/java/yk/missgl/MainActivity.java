@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
                 SensorManager.SENSOR_DELAY_NORMAL);
         AssetManager assetManager = getAssets();
         requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getSupportActionBar().hide();
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
