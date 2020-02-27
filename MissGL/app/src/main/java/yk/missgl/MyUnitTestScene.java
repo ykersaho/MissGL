@@ -16,17 +16,17 @@ import static android.opengl.GLES10.GL_LIGHT1;
 public class MyUnitTestScene extends MISScene {
     long t0 = System.nanoTime();
     float [] gravity= {0.0f, -9.0f, 0.0f};
-    float [] raxis= {0f, 200.0f, 0.0f};
+    float [] raxis= {0f, 0.0f, 200.0f};
     float [] raxis1= {0f, 0.0f, 1.0f};
     float [] speed= {200f, 0.0f, 0.0f};
-    float [] speed1= {50.0f, 0.0f, 0.0f};
+    float [] speed1= {0.0f, 0.0f, -40.0f};
     float [] speed2= {10.0f, 0.0f, 0.0f};
     float [] campos = {0.0f, 10.0f, 20.0f};
     float [] camrot = {-1.0f, 0.0f, 0.0f};
     float [] rot = {1.0f, 1.0f, 0.0f};
 
     MyUnitTestScene(AssetManager assetManager) throws IOException {
-        test1(assetManager);
+        test6(assetManager);
     }
 
     public void test1(AssetManager assetManager) throws IOException {
@@ -42,9 +42,9 @@ public class MyUnitTestScene extends MISScene {
     }
 
     public void test2(AssetManager assetManager) throws IOException {
-        addobject(new MISObject("ground", assetManager, "ground.obj", 100.0f, "tennis.jpg", 0.0f, -0.6f, -5.0f,1000000.0f,0.0f,0.3f));
+        addobject(new MISObject("ground", assetManager, "ground.obj", 100.0f, "tennis.jpg", 0.0f, 0.0f, -5.0f,1000000.0f,0.0f,0.3f));
         addobject(new MISObject("ball1", assetManager, "spheresmall.obj", 1.0f / 10.0f, "ball.jpg", -0.0f, 20.0f, 0.0f, 100.0f, 0.3f, 0.3f));
-        addobject(new MISObject("cube1", assetManager, "cube.obj", 5.0f, "wood.jpg", -0.0f, 10.0f, 0.0f,100.0f,0.5f,0.8f));
+        addobject(new MISObject("cube1", assetManager, "cube.obj", 5.0f, "wood.jpg", -0.0f, 10.0f, 0.0f,100.0f,0.5f,0.3f));
         getobject("ball1").posacceleration(gravity);
         //getobject("ball1").posspeed(speed);
         getobject("cube1").posacceleration(gravity);
@@ -54,19 +54,19 @@ public class MyUnitTestScene extends MISScene {
 
     public void test3(AssetManager assetManager) throws IOException {
         addobject(new MISObject("ground", assetManager, "ground.obj", 100.0f, "ground.jpg", 0.0f, -0.0f, -5.0f,1000000.0f,0.0f,0.5f));
-        addobject(new MISObject("cube1", assetManager, "cube.obj", 5.0f, "wood.jpg", -0.0f, 20.0f, 0.0f,100.0f,0.5f,0.8f));
-       addobject(new MISObject("ball1", assetManager, "spheresmall.obj", 1.0f/5.0f , "ball.jpg", 2f, 10.0f, 0.0f, 4000.0f, 0.5f, 0.3f));
-        addobject(new MISObject("ball2", assetManager, "spheresmall.obj", 1.0f/5.0f , "ball.jpg", 1f, 30.0f, 0.0f, 4000.0f, 0.5f, 0.3f));
-        addobject(new MISObject("BowlingPins0", assetManager, "BowlingPins.obj", 1.0f / 5.0f, "bowling_pin_TEX.jpg", 0.0f, 50.0f, -5.0f, 1000f, 0.6f, 0.5f));
+        //addobject(new MISObject("cube1", assetManager, "cube.obj", 5.0f, "wood.jpg", -0.0f, 20.0f, 0.0f,100.0f,0.5f,0.3f));
+        //addobject(new MISObject("ball1", assetManager, "spheresmall.obj", 1.0f/5.0f , "ball.jpg", 2f, 10.0f, 0.0f, 4000.0f, 0.5f, 0.3f));
+        //addobject(new MISObject("ball2", assetManager, "spheresmall.obj", 1.0f/5.0f , "ball.jpg", 1f, 30.0f, 0.0f, 4000.0f, 0.5f, 0.3f));
+        addobject(new MISObject("BowlingPins0", assetManager, "BowlingPins.obj", 1.0f / 5.0f, "bowling_pin_TEX.jpg", 0.0f, 50.0f, -5.0f, 1000f, 0.3f, 0.3f));
         //        addobject(new MISObject("cube2", assetManager, "cube.obj", 2.0f, "tennis.jpg", 0.0f, 5.5f, 0.0f,100.0f,0.5f));
-        getobject("cube1").posacceleration(gravity);
+        //getobject("cube1").posacceleration(gravity);
         //getobject("cube1").posspeed(speed);
         //getobject("ball1").posspeed(speed);
           //    getobject("cube1").rotationaxis(rot);
         getobject("BowlingPins0").rotationangle(40);
-        getobject("cube1").rotationangle(40);
-        getobject("ball1").posacceleration(gravity);
-        getobject("ball2").posacceleration(gravity);
+        //getobject("cube1").rotationangle(40);
+        //getobject("ball1").posacceleration(gravity);
+        //getobject("ball2").posacceleration(gravity);
         getobject("BowlingPins0").posacceleration(gravity);
 
 //        getobject("cube2").posacceleration(gravity);
@@ -101,13 +101,13 @@ public class MyUnitTestScene extends MISScene {
 
     public void test6(AssetManager assetManager) throws IOException {
         addobject(new MISObject("ground", assetManager, "ground.obj", 100.0f, "wood.jpg", 0.0f, 0.0f, -5.0f,1000000.0f,0.0f,0.5f));
-        addobject(new MISObject("ball1", assetManager, "spheresmall.obj", 1.0f / 8.0f, "bowl.png", 1.5f, 2.0f, 20.0f, 4000.0f, 0.2f, 0.2f));
-        addobject(new MISObject("BowlingPins0", assetManager, "BowlingPins.obj", 1.0f / 10.0f, "bowling_pin_TEX.jpg", 0.0f, 2.0f, -5.0f, 1000f, 0.6f, 0.5f));
-        addobject(new MISObject("BowlingPins1", assetManager, "BowlingPins.obj", 1.0f / 10.0f, "bowling_pin_TEX.jpg", 2.0f, 2.0f, -5.0f, 1000f, 0.6f, 0.5f));
-        addobject(new MISObject("BowlingPins2", assetManager, "BowlingPins.obj", 1.0f / 10.0f, "bowling_pin_TEX.jpg", 4.0f, 2.0f, -5.0f, 1000f, 0.6f, 0.5f));
-        addobject(new MISObject("BowlingPins3", assetManager, "BowlingPins.obj", 1.0f / 10.0f, "bowling_pin_TEX.jpg", 1.0f, 2.0f, -7.0f, 1000f, 0.6f, 0.5f));
-        addobject(new MISObject("BowlingPins4", assetManager, "BowlingPins.obj", 1.0f / 10.0f, "bowling_pin_TEX.jpg", 3.0f, 2.0f, -7.0f, 1000f, 0.6f, 0.5f));
-        addobject(new MISObject("BowlingPins5", assetManager, "BowlingPins.obj", 1.0f / 10.0f, "bowling_pin_TEX.jpg", 5.0f, 2.0f, -7.0f, 1000f, 0.6f, 0.5f));
+        addobject(new MISObject("ball1", assetManager, "spheresmall.obj", 1.0f / 8.0f, "bowl.png", 1.5f, 2.0f, 20.0f, 4000.0f, 0.2f, 0.1f));
+        addobject(new MISObject("BowlingPins0", assetManager, "BowlingPins.obj", 1.0f / 10.0f, "bowling_pin_TEX.jpg", 0.0f, 2.0f, -5.0f, 1000f, 0.6f, 0.2f));
+        addobject(new MISObject("BowlingPins1", assetManager, "BowlingPins.obj", 1.0f / 10.0f, "bowling_pin_TEX.jpg", 2.0f, 2.0f, -5.0f, 1000f, 0.6f, 0.2f));
+        addobject(new MISObject("BowlingPins2", assetManager, "BowlingPins.obj", 1.0f / 10.0f, "bowling_pin_TEX.jpg", 4.0f, 2.0f, -5.0f, 1000f, 0.6f, 0.2f));
+        addobject(new MISObject("BowlingPins3", assetManager, "BowlingPins.obj", 1.0f / 10.0f, "bowling_pin_TEX.jpg", 1.0f, 2.0f, -7.0f, 1000f, 0.6f, 0.2f));
+        addobject(new MISObject("BowlingPins4", assetManager, "BowlingPins.obj", 1.0f / 10.0f, "bowling_pin_TEX.jpg", 3.0f, 2.0f, -7.0f, 1000f, 0.6f, 0.2f));
+        addobject(new MISObject("BowlingPins5", assetManager, "BowlingPins.obj", 1.0f / 10.0f, "bowling_pin_TEX.jpg", 5.0f, 2.0f, -7.0f, 1000f, 0.6f, 0.2f));
         addlight(new MISLight(GL_LIGHT0,0.0f, 1.0f, -2.0f));
         addlight(new MISLight(GL_LIGHT1,1.0f, 10.0f, -1.0f));
         getobject("ball1").posacceleration(gravity);

@@ -343,14 +343,18 @@ int impact(NativeObject *o1, NativeObject *o2, float *n1, float *VOUT, float *RA
         VOUT[1] = f * N1[1] + resistance*VT1Y[1];
         VOUT[2] = f * N1[2] + resistance*VT1Y[2];
 
-        // impact on rotation
-        VP[0] = G1[1] * VT1Y[2] - G1[2] * VT1Y[1];
-        VP[1] = G1[2] * VT1Y[0] - G1[0] * VT1Y[2];
-        VP[2] = G1[0] * VT1Y[1] - G1[1] * VT1Y[0];
+        VT1[0] = VT1X[0] * resistance + VT1Y[0] * friction;
+        VT1[1] = VT1X[1] * resistance + VT1Y[1] * friction;
+        VT1[2] = VT1X[2] * resistance + VT1Y[2] * friction;
 
-        R1[0] = - VP[0]*friction;
-        R1[1] = - VP[1]*friction;
-        R1[2] = - VP[2]*friction;
+        // impact on rotation
+        VP[0] = G1[1] * VT1[2] - G1[2] * VT1[1];
+        VP[1] = G1[2] * VT1[0] - G1[0] * VT1[2];
+        VP[2] = G1[0] * VT1[1] - G1[1] * VT1[0];
+
+        R1[0] = - VP[0];
+        R1[1] = - VP[1];
+        R1[2] = - VP[2];
 
         // rotation impact on translation
         VR1[0] = (G1[1] * RA[2] - G1[2] * RA[1]) * friction * (3.1415926f/180.0f) * lg1;
@@ -364,6 +368,22 @@ int impact(NativeObject *o1, NativeObject *o2, float *n1, float *VOUT, float *RA
         RA[0] = resistance * (RA[0] + R1[0]*(180.0f/3.1415926f)/lg1);
         RA[1] = resistance * (RA[1] + R1[1]*(180.0f/3.1415926f)/lg1);
         RA[2] = resistance * (RA[2] + R1[2]*(180.0f/3.1415926f)/lg1);
+    }
+    else {
+        VR1[0] = (G1[1] * RA[2] - G1[2] * RA[1]);
+        VR1[1] = (G1[2] * RA[0] - G1[0] * RA[2]);
+        VR1[2] = (G1[0] * RA[1] - G1[1] * RA[0]);
+        lv1 = (float) sqrt(VR1[0]*VR1[0]+VR1[1]*VR1[1]+VR1[2]*VR1[2]);
+        s = VR1[0]*N1[0] + VR1[1]*N1[1] +VR1[2]*N1[2];
+        if(s > 0.2f*lv1) {
+            VP[0] = G1[1] * VR1[2] - G1[2] * VR1[1];
+            VP[1] = G1[2] * VR1[0] - G1[0] * VR1[2];
+            VP[2] = G1[0] * VR1[1] - G1[1] * VR1[0];
+            RA[0] = RA[0] + o1->elasticity*VP[0];
+            RA[1] = RA[1] + o1->elasticity*VP[1];
+            RA[2] = RA[2] + o1->elasticity*VP[2];
+        }
+
     }
 
     return(0);
@@ -544,7 +564,7 @@ void collision() {
 
     // then compute collision
     // equilibrium law : do this until there is no more shock
-    for(j=0;j<4;j++) // 10 times max
+    //for(j=0;j<4;j++) // 10 times max
     for (i=0;i<gnbimpact;i++) {
         __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "--------------------------------------%d\n",i);
             physics(&gimpacts[i]);

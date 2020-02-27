@@ -9,7 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import static android.opengl.GLES10.GL_LIGHT0;
 import static android.opengl.GLES10.GL_LIGHT1;
 
-public class MyScene extends MyBocce {
+public class MyScene extends MyGame {
     public MyScene(AssetManager assetManager) throws IOException { super(assetManager);
     }
 }
